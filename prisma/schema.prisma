@@ -1,0 +1,160 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  JUDGE
+}
+enum TournamentStatus {
+  DRAFT
+  ACTIVE
+  COMPLETED
+}
+enum RoundStatus {
+  PENDING
+  OPEN
+  CLOSED
+}
+enum MatchStage {
+  QUARTER_FINAL
+  SEMI_FINAL
+  FINAL
+}
+
+model User {
+  id String @id @default(cuid())
+  email String @unique
+  passwordHash String
+  name String
+  role Role @default(JUDGE)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  judge Judge?
+  votes Vote[]
+  audits AuditLog[]
+}
+model Judge {
+  id String @id @default(cuid())
+  userId String @unique
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  active Boolean @default(true)
+  assignments JudgeAssignment[]
+}
+model JudgeAssignment {
+  id String @id @default(cuid())
+  matchId String
+  judgeId String
+  match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  judge Judge @relation(fields: [judgeId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  @@unique([matchId, judgeId])
+  @@index([judgeId])
+}
+model Candidate {
+  id String @id @default(cuid())
+  name String
+  country String?
+  seed Int?
+  createdAt DateTime @default(now())
+  matchesA Match[] @relation("CandidateA")
+  matchesB Match[] @relation("CandidateB")
+  wins Match[] @relation("Winner")
+  tournaments Tournament[]
+}
+model Tournament {
+  id String @id @default(cuid())
+  name String
+  status TournamentStatus @default(DRAFT)
+  winnerId String?
+  winner Candidate? @relation(fields: [winnerId], references: [id])
+  createdAt DateTime @default(now())
+  matches Match[]
+}
+model Match {
+  id String @id @default(cuid())
+  tournamentId String
+  tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  name String
+  stage MatchStage
+  candidateAId String?
+  candidateBId String?
+  candidateA Candidate? @relation("CandidateA", fields: [candidateAId], references: [id])
+  candidateB Candidate? @relation("CandidateB", fields: [candidateBId], references: [id])
+  winnerId String?
+  winner Candidate? @relation("Winner", fields: [winnerId], references: [id])
+  assignments JudgeAssignment[]
+  nextMatchAId String?
+  nextMatchBId String?
+  nextMatchA Match? @relation("NextA", fields: [nextMatchAId], references: [id])
+  nextMatchB Match? @relation("NextB", fields: [nextMatchBId], references: [id])
+  previousA Match[] @relation("NextA")
+  previousB Match[] @relation("NextB")
+  rounds Round[]
+  result MatchResult?
+  createdAt DateTime @default(now())
+}
+model Round {
+  id String @id @default(cuid())
+  matchId String
+  match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  number Int
+  status RoundStatus @default(PENDING)
+  startedAt DateTime?
+  closedAt DateTime?
+  criteria Criterion[]
+  votes Vote[]
+  result RoundResult?
+  @@unique([matchId, number])
+}
+model Criterion {
+  id String @id @default(cuid())
+  roundId String
+  round Round @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  name String
+  weight Decimal @db.Decimal(5, 4)
+  @@unique([roundId, name])
+}
+model Vote {
+  id String @id @default(cuid())
+  judgeId String
+  judge User @relation(fields: [judgeId], references: [id], onDelete: Cascade)
+  roundId String
+  round Round @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  criterion String
+  value Int
+  createdAt DateTime @default(now())
+  @@unique([judgeId, roundId, criterion])
+}
+model RoundResult {
+  id String @id @default(cuid())
+  roundId String @unique
+  round Round @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  candidateAScore Decimal @db.Decimal(8, 4)
+  candidateBScore Decimal @db.Decimal(8, 4)
+  winnerId String?
+  calculatedAt DateTime @default(now())
+}
+model MatchResult {
+  id String @id @default(cuid())
+  matchId String @unique
+  match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  candidateAScore Decimal @db.Decimal(8, 4)
+  candidateBScore Decimal @db.Decimal(8, 4)
+  winnerId String
+  calculatedAt DateTime @default(now())
+}
+model AuditLog {
+  id String @id @default(cuid())
+  userId String?
+  user User? @relation(fields: [userId], references: [id])
+  action String
+  entityId String?
+  metadata Json?
+  createdAt DateTime @default(now())
+}

@@ -1,0 +1,66 @@
+﻿{
+    "value":  [
+                  {
+                      "id":  "cmuv5a72b0006tlugztwcwva7",
+                      "tournamentId":  "cmuv5a6u10004tlugmh9dtvni",
+                      "name":  "Quarter Final #1",
+                      "stage":  "QUARTER_FINAL",
+                      "candidateAId":  "cmuv5a5sn0002tlugp2jmg0tz",
+                      "candidateBId":  "cmuv5a6m70003tlugvjbvrb9z",
+                      "winnerId":  null,
+                      "nextMatchAId":  null,
+                      "nextMatchBId":  null,
+                      "createdAt":  "2026-10-05T11:06:45.443Z",
+                      "candidateA":  {
+                                         "id":  "cmuv5a5sn0002tlugp2jmg0tz",
+                                         "name":  "B-Boy Nova",
+                                         "country":  "FR",
+                                         "seed":  1,
+                                         "createdAt":  "2026-10-05T11:06:43.799Z"
+                                     },
+                      "candidateB":  {
+                                         "id":  "cmuv5a6m70003tlugvjbvrb9z",
+                                         "name":  "B-Girl Volt",
+                                         "country":  "JP",
+                                         "seed":  2,
+                                         "createdAt":  "2026-10-05T11:06:43.799Z"
+                                     },
+                      "rounds":  [
+                                     {
+                                         "id":  "cmuv5a7yi000atlugficipwrj",
+                                         "matchId":  "cmuv5a72b0006tlugztwcwva7",
+                                         "number":  1,
+                                         "status":  "CLOSED",
+                                         "startedAt":  "2026-10-05T10:06:46.569Z",
+                                         "closedAt":  "2026-10-05T10:36:46.569Z",
+                                         "result":  {
+                                                        "id":  "cmuv5a8v0000htluggp3pgc6n",
+                                                        "roundId":  "cmuv5a7yi000atlugficipwrj",
+                                                        "candidateAScore":  "78.5",
+                                                        "candidateBScore":  "71.2",
+                                                        "winnerId":  "cmuv5a5sn0002tlugp2jmg0tz",
+                                                        "calculatedAt":  "2026-10-05T11:06:47.773Z"
+                                                    }
+                                     },
+                                     {
+                                         "id":  "cmuv5a93k000jtlugta8n7fef",
+                                         "matchId":  "cmuv5a72b0006tlugztwcwva7",
+                                         "number":  2,
+                                         "status":  "OPEN",
+                                         "startedAt":  "2026-10-05T11:06:48.078Z",
+                                         "closedAt":  null,
+                                         "result":  null
+                                     }
+                                 ],
+                      "result":  null,
+                      "assignedJudges":  [
+                                             {
+                                                 "id":  "cmuv3s33b0000tlksk0vefqsm",
+                                                 "name":  "Test Judge",
+                                                 "email":  "test@dancebattle.fr"
+                                             }
+                                         ]
+                  }
+              ],
+    "Count":  1
+}

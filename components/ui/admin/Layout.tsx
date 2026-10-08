@@ -1,0 +1,12 @@
+'use client'
+
+import { Sidebar } from '../Sidebar'
+
+export function AdminLayout({ children }: { children: React.ReactNode }) {
+    return (
+        <main className="min-h-screen bg-[#f7f8fa] text-[#202532]">
+            <Sidebar />
+            <div className="lg:pl-[248px]">{children}</div>
+        </main>
+    )
+}
