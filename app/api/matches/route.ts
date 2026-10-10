@@ -13,7 +13,7 @@ export async function GET(request: Request) {
   const tournamentId = new URL(request.url).searchParams.get('tournamentId')
 
   if (!user) {
-    console.error('❌ [matches] 401 — currentUser a renvoyé null')
+    // console.error('❌ [matches] 401 — currentUser a renvoyé null')
     return NextResponse.json({ error: 'Authentification requise' }, { status: 401 })
   }
 
@@ -69,18 +69,18 @@ export async function POST(request: Request) {
   let user
   try {
     user = await requireUser(request as any, 'ADMIN')
-    console.log('👤 [matches POST] user:', { id: user.id, role: user.role })
+    // console.log('👤 [matches POST] user:', { id: user.id, role: user.role })
   } catch (e) {
-    console.error('❌ [matches POST] requireUser a échoué:', e)
+    // console.error('❌ [matches POST] requireUser a échoué:', e)
     return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
   }
 
   let body: unknown
   try {
     body = await request.json()
-    console.log('📦 [matches POST] body brut:', JSON.stringify(body, null, 2))
+    // console.log('📦 [matches POST] body brut:', JSON.stringify(body, null, 2))
   } catch (e) {
-    console.error('❌ [matches POST] JSON invalide:', e)
+    // console.error('❌ [matches POST] JSON invalide:', e)
     return NextResponse.json({ error: 'JSON invalide' }, { status: 400 })
   }
 
@@ -96,7 +96,7 @@ export async function POST(request: Request) {
         { status: 400 }
       )
     }
-    console.error('❌ [matches POST] erreur Zod inconnue:', e)
+    // console.error('❌ [matches POST] erreur Zod inconnue:', e)
     return NextResponse.json({ error: 'Données invalides' }, { status: 400 })
   }
 
@@ -132,7 +132,7 @@ export async function POST(request: Request) {
       { status: 201 }
     )
   } catch (e) {
-    console.error('❌ [matches POST] Prisma a échoué:', e)
+    // console.error('❌ [matches POST] Prisma a échoué:', e)
     return NextResponse.json(
       { error: 'Données invalides', details: e instanceof Error ? e.message : String(e) },
       { status: 400 }
