@@ -77,40 +77,39 @@ export default function MatchDetailPage() {
         }
     }
 
-    if (loading) return <main className="min-h-screen bg-[#f7f8fa] p-10 text-center text-sm text-[#7e8798]">Chargement…</main>
-    if (!match) return <main className="min-h-screen bg-[#f7f8fa] p-10 text-center text-sm text-[#f25555]">Match introuvable.</main>
+    if (loading) return <main className="min-h-screen bg-[#fafafc] p-10 text-center text-sm font-medium text-[#64748b]">Chargement…</main>
+    if (!match) return <main className="min-h-screen bg-[#fafafc] p-10 text-center text-sm font-semibold text-[#dc2626]">Match introuvable.</main>
 
     return (
         <AdminLayout>
-
-            <main className="min-h-screen bg-[#f7f8fa] text-[#202532]">
+            <main className="min-h-screen bg-[#fafafc] text-[#0f172a]">
                 <div className="mx-auto max-w-[1100px] px-5 py-7 sm:px-8">
-                    <a href="/admin/matches" className="mb-4 inline-flex items-center gap-1.5 text-xs font-semibold text-[#7e8798] hover:text-[#1b66f9]">
+                    <a href="/matches" className="mb-4 inline-flex items-center gap-1.5 text-xs font-bold text-[#64748b] hover:text-[#e63946] transition-colors">
                         <ArrowLeft className="size-3.5" /> Retour aux matchs
                     </a>
 
                     <div className="mb-7 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
                         <div>
-                            <p className="text-[11px] font-semibold uppercase tracking-[.18em] text-[#a0a8b6]">
+                            <p className="text-[11px] font-bold uppercase tracking-[.2em] text-[#ff6b4a]">
                                 {match.stage.replace('_', ' ')}
                             </p>
-                            <h1 className="mt-1 text-[28px] font-bold tracking-tight">{match.name}</h1>
-                            <p className="mt-1 text-sm text-[#7e8798]">
+                            <h1 className="mt-1 text-[28px] font-black tracking-tight text-[#0f172a]">{match.name}</h1>
+                            <p className="mt-1 text-sm font-medium text-[#64748b]">
                                 {match.candidateA?.name ?? 'TBD'}{' '}
-                                <span className="font-bold text-[#f25555]">vs</span>{' '}
+                                <span className="font-black text-[#e63946]">VS</span>{' '}
                                 {match.candidateB?.name ?? 'TBD'}
                             </p>
                         </div>
                         <button
                             onClick={() => setShowRoundForm(true)}
-                            className="inline-flex items-center gap-2 rounded-xl bg-[#1b66f9] px-5 py-3 text-sm font-bold text-white hover:bg-[#1059e5]"
+                            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#FF6B4A] to-[#E63946] px-5 py-3 text-sm font-bold text-white shadow-md shadow-red-500/20 hover:opacity-95 transition-all active:scale-[0.99]"
                         >
                             <Plus className="size-4" /> Nouveau round
                         </button>
                     </div>
 
                     {message && (
-                        <div className={`mb-5 rounded-xl border px-4 py-3 text-sm font-semibold ${message.type === 'success' ? 'border-[#c8efd9] bg-[#eefbf4] text-[#24a363]' : 'border-[#f9d0d0] bg-[#fff3f1] text-[#f25555]'}`}>
+                        <div className={`mb-5 rounded-2xl border px-4 py-3 text-sm font-semibold shadow-2xs ${message.type === 'success' ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-rose-200 bg-[#fff1f2] text-[#dc2626]'}`}>
                             {message.text}
                         </div>
                     )}
@@ -130,28 +129,28 @@ export default function MatchDetailPage() {
 
                     <section className="flex flex-col gap-4">
                         {match.rounds.length === 0 ? (
-                            <div className="rounded-2xl border border-dashed border-[#e5e8ee] bg-white p-12 text-center">
-                                <p className="text-sm font-semibold">Aucun round</p>
-                                <p className="mt-1 text-xs text-[#7e8798]">
+                            <div className="rounded-2xl border border-dashed border-rose-200 bg-white p-12 text-center">
+                                <p className="text-sm font-bold text-[#0f172a]">Aucun round</p>
+                                <p className="mt-1 text-xs text-[#64748b]">
                                     Ajoutez un round pour permettre les votes des juges.
                                 </p>
                             </div>
                         ) : (
                             match.rounds.map((round) => (
-                                <article key={round.id} className="rounded-2xl border border-[#e5e8ee] bg-white p-5 shadow-[0_8px_30px_rgba(31,45,75,0.04)]">
+                                <article key={round.id} className="rounded-2xl border border-rose-100 bg-white p-5 shadow-2xs">
                                     <div className="mb-4 flex items-center justify-between">
                                         <div className="flex items-center gap-3">
-                                            <span className="grid size-9 place-items-center rounded-xl bg-[#edf4ff] text-sm font-bold text-[#1b66f9]">
+                                            <span className="grid size-9 place-items-center rounded-xl bg-gradient-to-br from-[#FF6B4A] to-[#E63946] text-sm font-extrabold text-white shadow-xs">
                                                 R{round.number}
                                             </span>
                                             <div>
-                                                <h3 className="font-bold">Round {round.number}</h3>
-                                                <p className="text-xs text-[#a0a8b6]">{round.criteria.length} critère(s)</p>
+                                                <h3 className="font-bold text-[#0f172a]">Round {round.number}</h3>
+                                                <p className="text-xs font-medium text-[#94a3b8]">{round.criteria.length} critère(s)</p>
                                             </div>
                                         </div>
                                         <span
-                                            className="rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wider"
-                                            style={{ backgroundColor: `${statusColors[round.status]}20`, color: statusColors[round.status] }}
+                                            className="rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wider border"
+                                            style={{ backgroundColor: `${statusColors[round.status]}15`, color: statusColors[round.status], borderColor: `${statusColors[round.status]}30` }}
                                         >
                                             {round.status}
                                         </span>
@@ -159,33 +158,33 @@ export default function MatchDetailPage() {
 
                                     <div className="mb-4 flex flex-wrap gap-2">
                                         {round.criteria.map((c) => (
-                                            <span key={c.id} className="rounded-lg bg-[#f5f7fa] px-2.5 py-1 text-[11px] font-semibold text-[#7e8798]">
+                                            <span key={c.id} className="rounded-lg bg-[#fff1f2]/50 border border-rose-100 px-2.5 py-1 text-[11px] font-bold text-[#e63946]">
                                                 {c.name} · {Math.round(Number(c.weight) * 100)}%
                                             </span>
                                         ))}
                                     </div>
 
-                                    <div className="flex items-center justify-between border-t border-[#f1f3f7] pt-4">
+                                    <div className="flex items-center justify-between border-t border-rose-100/60 pt-4">
                                         <div>
                                             {round.result ? (
                                                 <p className="text-sm">
-                                                    <span className="font-bold text-[#1b66f9]">
+                                                    <span className="font-extrabold text-[#e63946]">
                                                         {Number(round.result.candidateAScore).toFixed(1)}
                                                     </span>
-                                                    <span className="mx-1 text-[#c7ccd5]">:</span>
-                                                    <span className="font-bold text-[#f25555]">
+                                                    <span className="mx-1 font-bold text-[#94a3b8]">:</span>
+                                                    <span className="font-extrabold text-[#ff6b4a]">
                                                         {Number(round.result.candidateBScore).toFixed(1)}
                                                     </span>
                                                 </p>
                                             ) : (
-                                                <p className="text-xs text-[#a0a8b6]">Pas encore de résultat</p>
+                                                <p className="text-xs text-[#94a3b8]">Pas encore de résultat</p>
                                             )}
                                         </div>
                                         <div className="flex gap-2">
                                             {round.status !== 'OPEN' && (
                                                 <button
                                                     onClick={() => void toggleStatus(round, 'OPEN')}
-                                                    className="inline-flex items-center gap-1.5 rounded-lg bg-[#eefbf4] px-3 py-1.5 text-xs font-bold text-[#24a363] hover:bg-[#d9f6e5]"
+                                                    className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-50 border border-emerald-200 px-3.5 py-1.5 text-xs font-bold text-emerald-700 hover:bg-emerald-100 transition-colors"
                                                 >
                                                     <LockOpen className="size-3.5" /> Ouvrir
                                                 </button>
@@ -193,7 +192,7 @@ export default function MatchDetailPage() {
                                             {round.status === 'OPEN' && (
                                                 <button
                                                     onClick={() => void toggleStatus(round, 'CLOSED')}
-                                                    className="inline-flex items-center gap-1.5 rounded-lg bg-[#f5f7fa] px-3 py-1.5 text-xs font-bold text-[#7e8798] hover:bg-[#edf0f4]"
+                                                    className="inline-flex items-center gap-1.5 rounded-xl bg-slate-100 border border-slate-200 px-3.5 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-200 transition-colors"
                                                 >
                                                     <Lock className="size-3.5" /> Fermer
                                                 </button>
@@ -272,36 +271,36 @@ function RoundForm({
     const allCriterionNames = ['technique', 'vocabulary', 'originality', 'musicality', 'execution']
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4" onClick={onClose}>
             <form
                 onSubmit={handleSubmit}
                 onClick={(e) => e.stopPropagation()}
-                className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-6 shadow-xl"
+                className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-6 shadow-xl border border-rose-100"
             >
                 <div className="mb-5 flex items-start justify-between">
-                    <h2 className="text-lg font-bold">Nouveau round</h2>
-                    <button type="button" onClick={onClose} className="text-[#a0a8b6] hover:text-[#202532]">
+                    <h2 className="text-lg font-bold text-[#0f172a]">Nouveau round</h2>
+                    <button type="button" onClick={onClose} className="text-[#94a3b8] hover:text-[#e63946] transition-colors">
                         <X className="size-5" />
                     </button>
                 </div>
 
                 <div className="mb-4 grid grid-cols-2 gap-3">
                     <label className="block">
-                        <span className="text-xs font-semibold text-[#7e8798]">Numéro</span>
+                        <span className="text-xs font-bold text-[#0f172a]">Numéro</span>
                         <input
                             type="number"
                             min={1}
                             value={number}
                             onChange={(e) => setNumber(Number(e.target.value))}
-                            className="mt-1 w-full rounded-lg border border-[#e2e6ed] px-3 py-2 text-sm outline-none focus:border-[#1b66f9]"
+                            className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:border-[#e63946] focus:ring-2 focus:ring-[#e63946]/20 transition-all"
                         />
                     </label>
                     <label className="block">
-                        <span className="text-xs font-semibold text-[#7e8798]">Statut initial</span>
+                        <span className="text-xs font-bold text-[#0f172a]">Statut initial</span>
                         <select
                             value={status}
                             onChange={(e) => setStatus(e.target.value as 'PENDING' | 'OPEN')}
-                            className="mt-1 w-full rounded-lg border border-[#e2e6ed] px-3 py-2 text-sm outline-none focus:border-[#1b66f9]"
+                            className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:border-[#e63946] focus:ring-2 focus:ring-[#e63946]/20 transition-all"
                         >
                             <option value="PENDING">En attente</option>
                             <option value="OPEN">Ouvert</option>
@@ -310,27 +309,27 @@ function RoundForm({
                 </div>
 
                 <div className="mb-4">
-                    <div className="mb-2 flex items-center justify-between">
-                        <span className="text-xs font-semibold text-[#7e8798]">Critères et poids</span>
+                    <div className="mb-2.5 flex items-center justify-between">
+                        <span className="text-xs font-bold text-[#0f172a]">Critères et poids</span>
                         <span
-                            className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${Math.abs(totalWeight - 1) < 0.001
-                                ? 'bg-[#eefbf4] text-[#24a363]'
-                                : 'bg-[#fff3f1] text-[#f25555]'
+                            className={`rounded-full px-2.5 py-1 text-[11px] font-bold border ${Math.abs(totalWeight - 1) < 0.001
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                : 'bg-[#fff1f2] text-[#dc2626] border-rose-200'
                                 }`}
                         >
                             Total : {Math.round(totalWeight * 100)}%
                         </span>
                     </div>
 
-                    <div className="mb-2 flex flex-wrap gap-2">
+                    <div className="mb-3 flex flex-wrap gap-2">
                         {allCriterionNames.map((name) => (
                             <button
                                 key={name}
                                 type="button"
                                 onClick={() => toggleCriterion(name)}
-                                className={`rounded-full border px-3 py-1.5 text-xs font-semibold capitalize transition ${criteria.some((c) => c.name === name)
-                                    ? 'border-[#1b66f9] bg-[#edf4ff] text-[#1b66f9]'
-                                    : 'border-[#e2e6ed] bg-white text-[#7e8798]'
+                                className={`rounded-full border px-3 py-1.5 text-xs font-bold capitalize transition-all ${criteria.some((c) => c.name === name)
+                                    ? 'border-[#e63946] bg-[#fff1f2] text-[#e63946]'
+                                    : 'border-slate-200 bg-white text-[#64748b] hover:bg-slate-50'
                                     }`}
                             >
                                 {name}
@@ -340,8 +339,8 @@ function RoundForm({
 
                     <div className="mt-3 flex flex-col gap-2">
                         {criteria.map((c) => (
-                            <div key={c.name} className="flex items-center gap-3 rounded-lg border border-[#f1f3f7] bg-[#fbfcfe] px-3 py-2">
-                                <span className="w-28 text-xs font-bold capitalize text-[#7e8798]">{c.name}</span>
+                            <div key={c.name} className="flex items-center gap-3 rounded-xl border border-rose-100/80 bg-[#fafafc] px-3.5 py-2">
+                                <span className="w-28 text-xs font-bold capitalize text-[#0f172a]">{c.name}</span>
                                 <input
                                     type="range"
                                     min={0}
@@ -349,28 +348,28 @@ function RoundForm({
                                     step={0.05}
                                     value={c.weight}
                                     onChange={(e) => updateWeight(c.name, Number(e.target.value))}
-                                    className="flex-1"
+                                    className="flex-1 accent-[#e63946]"
                                 />
-                                <span className="w-12 text-right text-xs font-bold">{Math.round(c.weight * 100)}%</span>
+                                <span className="w-12 text-right text-xs font-bold text-[#e63946]">{Math.round(c.weight * 100)}%</span>
                             </div>
                         ))}
                     </div>
                 </div>
 
-                {error && <p className="mb-4 text-xs font-semibold text-[#f25555]">{error}</p>}
+                {error && <p className="mb-4 text-xs font-semibold text-[#dc2626]">{error}</p>}
 
-                <div className="flex justify-end gap-2">
+                <div className="mt-3 flex justify-end gap-2.5">
                     <button
                         type="button"
                         onClick={onClose}
-                        className="rounded-xl border border-[#e2e6ed] px-4 py-2.5 text-sm font-semibold text-[#7e8798] hover:bg-[#f7f8fa]"
+                        className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-[#64748b] hover:bg-slate-50 transition-colors"
                     >
                         Annuler
                     </button>
                     <button
                         type="submit"
                         disabled={submitting || criteria.length === 0 || Math.abs(totalWeight - 1) > 0.001}
-                        className="rounded-xl bg-[#1b66f9] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#1059e5] disabled:bg-[#aebbd4]"
+                        className="rounded-xl bg-gradient-to-r from-[#FF6B4A] to-[#E63946] px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-red-500/20 hover:opacity-95 disabled:opacity-50 transition-all"
                     >
                         {submitting ? 'Création…' : 'Créer le round'}
                     </button>

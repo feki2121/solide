@@ -61,18 +61,18 @@ export default function CandidatesPage() {
 
     return (
         <AdminLayout>
-            <main className="min-h-screen bg-[#f7f8fa] text-[#202532]">
+            <main className="min-h-screen bg-[#fafafc] text-[#0f172a]">
                 <div className="mx-auto max-w-[1200px] px-5 py-7 sm:px-8">
                     {/* En-tête */}
                     <div className="mb-7 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
                         <div>
-                            <p className="text-[11px] font-semibold uppercase tracking-[.18em] text-[#a0a8b6]">
+                            <p className="text-[11px] font-bold uppercase tracking-[.2em] text-[#ff6b4a]">
                                 Gestion
                             </p>
-                            <h1 className="mt-1 text-[28px] font-bold tracking-tight sm:text-[32px]">
+                            <h1 className="mt-1 text-[28px] font-black tracking-tight text-[#0f172a] sm:text-[32px]">
                                 Candidats
                             </h1>
-                            <p className="mt-1 text-sm text-[#7e8798]">
+                            <p className="mt-1 text-sm font-medium text-[#64748b]">
                                 {candidates.length} candidat{candidates.length > 1 ? 's' : ''} enregistré
                                 {candidates.length > 1 ? 's' : ''}
                             </p>
@@ -83,7 +83,7 @@ export default function CandidatesPage() {
                                 setShowForm(true)
                                 setMessage(null)
                             }}
-                            className="inline-flex items-center gap-2 rounded-xl bg-[#1b66f9] px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-[#1059e5]"
+                            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#FF6B4A] to-[#E63946] px-5 py-3 text-sm font-bold text-white shadow-md shadow-red-500/20 hover:opacity-95 transition-all active:scale-[0.99]"
                         >
                             <Plus className="size-4" />
                             Ajouter un candidat
@@ -94,9 +94,9 @@ export default function CandidatesPage() {
                     {message && (
                         <div
                             role="status"
-                            className={`mb-5 rounded-xl border px-4 py-3 text-sm font-semibold ${message.type === 'success'
-                                ? 'border-[#c8efd9] bg-[#eefbf4] text-[#24a363]'
-                                : 'border-[#f9d0d0] bg-[#fff3f1] text-[#f25555]'
+                            className={`mb-5 rounded-2xl border px-4 py-3 text-sm font-semibold shadow-2xs ${message.type === 'success'
+                                ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                                : 'border-rose-200 bg-[#fff1f2] text-[#dc2626]'
                                 }`}
                         >
                             {message.text}
@@ -117,49 +117,49 @@ export default function CandidatesPage() {
 
                     {/* Liste */}
                     {loading ? (
-                        <section className="rounded-2xl border border-[#e5e8ee] bg-white p-10 text-center text-sm text-[#7e8798]">
+                        <section className="rounded-2xl border border-rose-100 bg-white p-10 text-center text-sm font-medium text-[#64748b]">
                             Chargement…
                         </section>
                     ) : error ? (
-                        <section className="rounded-2xl border border-[#f9d0d0] bg-white p-10 text-center text-sm text-[#f25555]">
+                        <section className="rounded-2xl border border-rose-200 bg-white p-10 text-center text-sm font-semibold text-[#dc2626]">
                             {error}
                         </section>
                     ) : candidates.length === 0 ? (
-                        <section className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-[#e5e8ee] bg-white p-12 text-center">
-                            <Users className="size-8 text-[#a0a8b6]" />
-                            <p className="text-sm font-semibold">Aucun candidat pour le moment</p>
-                            <p className="text-xs text-[#7e8798]">
+                        <section className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-rose-200 bg-white p-12 text-center">
+                            <Users className="size-9 text-[#ff6b4a]" />
+                            <p className="text-sm font-bold text-[#0f172a]">Aucun candidat pour le moment</p>
+                            <p className="text-xs text-[#64748b]">
                                 Commencez par ajouter les danseurs du tournoi.
                             </p>
                         </section>
                     ) : (
-                        <section className="overflow-hidden rounded-2xl border border-[#e5e8ee] bg-white shadow-[0_8px_30px_rgba(31,45,75,0.04)]">
+                        <section className="overflow-hidden rounded-2xl border border-rose-100 bg-white shadow-2xs">
                             <table className="w-full text-sm">
                                 <thead>
-                                    <tr className="border-b border-[#edf0f4] bg-[#fbfcfe] text-left text-[11px] font-bold uppercase tracking-[.14em] text-[#a0a8b6]">
-                                        <th className="px-5 py-3">Seed</th>
-                                        <th className="px-5 py-3">Nom</th>
-                                        <th className="px-5 py-3">Pays</th>
-                                        <th className="px-5 py-3 text-right">Actions</th>
+                                    <tr className="border-b border-rose-100 bg-[#fff1f2]/40 text-left text-[11px] font-extrabold uppercase tracking-[.18em] text-[#ff6b4a]">
+                                        <th className="px-5 py-3.5">Seed</th>
+                                        <th className="px-5 py-3.5">Nom</th>
+                                        <th className="px-5 py-3.5">Pays</th>
+                                        <th className="px-5 py-3.5 text-right">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {candidates.map((candidate) => (
                                         <tr
                                             key={candidate.id}
-                                            className="border-b border-[#f1f3f7] last:border-0 hover:bg-[#fbfcfe]"
+                                            className="border-b border-rose-100/60 last:border-0 hover:bg-[#fff1f2]/20 transition-colors"
                                         >
-                                            <td className="px-5 py-4 text-xs font-bold text-[#7e8798]">
+                                            <td className="px-5 py-4 text-xs font-bold text-[#e63946]">
                                                 #{candidate.seed ?? '—'}
                                             </td>
-                                            <td className="px-5 py-4 font-semibold">{candidate.name}</td>
-                                            <td className="px-5 py-4 text-[#7e8798]">
+                                            <td className="px-5 py-4 font-bold text-[#0f172a]">{candidate.name}</td>
+                                            <td className="px-5 py-4 font-semibold text-[#64748b]">
                                                 {candidate.country ?? '—'}
                                             </td>
                                             <td className="px-5 py-4 text-right">
                                                 <button
                                                     onClick={() => void handleDelete(candidate.id, candidate.name)}
-                                                    className="inline-flex items-center gap-1.5 rounded-lg border border-[#f9d0d0] bg-white px-3 py-1.5 text-xs font-bold text-[#f25555] hover:bg-[#fff3f1]"
+                                                    className="inline-flex items-center gap-1.5 rounded-xl border border-rose-200 bg-[#fff1f2] px-3.5 py-1.5 text-xs font-bold text-[#dc2626] hover:bg-rose-100 transition-colors"
                                                 >
                                                     <Trash2 className="size-3.5" />
                                                     Supprimer
@@ -218,18 +218,18 @@ function CandidateForm({
 
     return (
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4"
             onClick={onClose}
         >
             <form
                 onSubmit={handleSubmit}
                 onClick={(e) => e.stopPropagation()}
-                className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl"
+                className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl border border-rose-100"
             >
                 <div className="mb-5 flex items-start justify-between">
                     <div>
-                        <h2 className="text-lg font-bold">Nouveau candidat</h2>
-                        <p className="mt-0.5 text-xs text-[#7e8798]">
+                        <h2 className="text-lg font-bold text-[#0f172a]">Nouveau candidat</h2>
+                        <p className="mt-0.5 text-xs text-[#64748b]">
                             Ajoutez un danseur au tournoi.
                         </p>
                     </div>
@@ -237,15 +237,15 @@ function CandidateForm({
                         type="button"
                         onClick={onClose}
                         aria-label="Fermer"
-                        className="text-[#a0a8b6] hover:text-[#202532]"
+                        className="text-[#94a3b8] hover:text-[#e63946] transition-colors"
                     >
                         <X className="size-5" />
                     </button>
                 </div>
 
                 <label className="mb-4 block">
-                    <span className="text-xs font-semibold text-[#7e8798]">
-                        Nom <span className="text-[#f25555]">*</span>
+                    <span className="text-xs font-bold text-[#0f172a]">
+                        Nom <span className="text-[#e63946]">*</span>
                     </span>
                     <input
                         type="text"
@@ -253,51 +253,51 @@ function CandidateForm({
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         placeholder="B-Boy Nova"
-                        className="mt-1 w-full rounded-lg border border-[#e2e6ed] px-3 py-2 text-sm outline-none focus:border-[#1b66f9]"
+                        className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:border-[#e63946] focus:ring-2 focus:ring-[#e63946]/20 transition-all"
                     />
                 </label>
 
                 <div className="grid grid-cols-2 gap-4">
                     <label className="mb-4 block">
-                        <span className="text-xs font-semibold text-[#7e8798]">Pays</span>
+                        <span className="text-xs font-bold text-[#0f172a]">Pays</span>
                         <input
                             type="text"
                             value={country}
                             onChange={(e) => setCountry(e.target.value)}
                             placeholder="FR"
-                            className="mt-1 w-full rounded-lg border border-[#e2e6ed] px-3 py-2 text-sm outline-none focus:border-[#1b66f9]"
+                            className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:border-[#e63946] focus:ring-2 focus:ring-[#e63946]/20 transition-all"
                         />
                     </label>
 
                     <label className="mb-4 block">
-                        <span className="text-xs font-semibold text-[#7e8798]">Seed</span>
+                        <span className="text-xs font-bold text-[#0f172a]">Seed</span>
                         <input
                             type="number"
                             min={1}
                             value={seed}
                             onChange={(e) => setSeed(e.target.value)}
                             placeholder="1"
-                            className="mt-1 w-full rounded-lg border border-[#e2e6ed] px-3 py-2 text-sm outline-none focus:border-[#1b66f9]"
+                            className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:border-[#e63946] focus:ring-2 focus:ring-[#e63946]/20 transition-all"
                         />
                     </label>
                 </div>
 
                 {error && (
-                    <p className="mb-4 text-xs font-semibold text-[#f25555]">{error}</p>
+                    <p className="mb-4 text-xs font-semibold text-[#dc2626]">{error}</p>
                 )}
 
-                <div className="mt-2 flex justify-end gap-2">
+                <div className="mt-3 flex justify-end gap-2.5">
                     <button
                         type="button"
                         onClick={onClose}
-                        className="rounded-xl border border-[#e2e6ed] px-4 py-2.5 text-sm font-semibold text-[#7e8798] hover:bg-[#f7f8fa]"
+                        className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-[#64748b] hover:bg-slate-50 transition-colors"
                     >
                         Annuler
                     </button>
                     <button
                         type="submit"
                         disabled={submitting || !name.trim()}
-                        className="rounded-xl bg-[#1b66f9] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#1059e5] disabled:bg-[#aebbd4]"
+                        className="rounded-xl bg-gradient-to-r from-[#FF6B4A] to-[#E63946] px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-red-500/20 hover:opacity-95 disabled:opacity-50 transition-all"
                     >
                         {submitting ? 'Création…' : 'Créer'}
                     </button>

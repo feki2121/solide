@@ -62,18 +62,18 @@ export default function JudgesPage() {
 
     return (
         <AdminLayout>
-            <main className="min-h-screen bg-[#f7f8fa] text-[#202532]">
+            <main className="min-h-screen bg-[#fafafc] text-[#0f172a]">
                 <div className="mx-auto max-w-[1200px] px-5 py-7 sm:px-8">
                     {/* En-tête */}
                     <div className="mb-7 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
                         <div>
-                            <p className="text-[11px] font-semibold uppercase tracking-[.18em] text-[#a0a8b6]">
+                            <p className="text-[11px] font-bold uppercase tracking-[.2em] text-[#ff6b4a]">
                                 Gestion
                             </p>
-                            <h1 className="mt-1 text-[28px] font-bold tracking-tight sm:text-[32px]">
+                            <h1 className="mt-1 text-[28px] font-black tracking-tight text-[#0f172a] sm:text-[32px]">
                                 Jurys
                             </h1>
-                            <p className="mt-1 text-sm text-[#7e8798]">
+                            <p className="mt-1 text-sm font-medium text-[#64748b]">
                                 {judges.length} juge{judges.length > 1 ? 's' : ''} enregistré
                                 {judges.length > 1 ? 's' : ''}
                             </p>
@@ -84,7 +84,7 @@ export default function JudgesPage() {
                                 setShowForm(true)
                                 setMessage(null)
                             }}
-                            className="inline-flex items-center gap-2 rounded-xl bg-[#1b66f9] px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-[#1059e5]"
+                            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#FF6B4A] to-[#E63946] px-5 py-3 text-sm font-bold text-white shadow-md shadow-red-500/20 hover:opacity-95 transition-all active:scale-[0.99]"
                         >
                             <Plus className="size-4" />
                             Ajouter un juge
@@ -95,9 +95,9 @@ export default function JudgesPage() {
                     {message && (
                         <div
                             role="status"
-                            className={`mb-5 rounded-xl border px-4 py-3 text-sm font-semibold ${message.type === 'success'
-                                ? 'border-[#c8efd9] bg-[#eefbf4] text-[#24a363]'
-                                : 'border-[#f9d0d0] bg-[#fff3f1] text-[#f25555]'
+                            className={`mb-5 rounded-2xl border px-4 py-3 text-sm font-semibold shadow-2xs ${message.type === 'success'
+                                ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                                : 'border-rose-200 bg-[#fff1f2] text-[#dc2626]'
                                 }`}
                         >
                             {message.text}
@@ -118,59 +118,59 @@ export default function JudgesPage() {
 
                     {/* Liste */}
                     {loading ? (
-                        <section className="rounded-2xl border border-[#e5e8ee] bg-white p-10 text-center text-sm text-[#7e8798]">
+                        <section className="rounded-2xl border border-rose-100 bg-white p-10 text-center text-sm font-medium text-[#64748b]">
                             Chargement…
                         </section>
                     ) : judges.length === 0 ? (
-                        <section className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-[#e5e8ee] bg-white p-12 text-center">
-                            <ShieldCheck className="size-8 text-[#a0a8b6]" />
-                            <p className="text-sm font-semibold">Aucun juge pour le moment</p>
-                            <p className="text-xs text-[#7e8798]">
+                        <section className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-rose-200 bg-white p-12 text-center">
+                            <ShieldCheck className="size-9 text-[#ff6b4a]" />
+                            <p className="text-sm font-bold text-[#0f172a]">Aucun juge pour le moment</p>
+                            <p className="text-xs text-[#64748b]">
                                 Créez un compte juge pour qu'il puisse évaluer les matchs.
                             </p>
                         </section>
                     ) : (
-                        <section className="overflow-hidden rounded-2xl border border-[#e5e8ee] bg-white shadow-[0_8px_30px_rgba(31,45,75,0.04)]">
+                        <section className="overflow-hidden rounded-2xl border border-rose-100 bg-white shadow-2xs">
                             <table className="w-full text-sm">
                                 <thead>
-                                    <tr className="border-b border-[#edf0f4] bg-[#fbfcfe] text-left text-[11px] font-bold uppercase tracking-[.14em] text-[#a0a8b6]">
-                                        <th className="px-5 py-3">Juge</th>
-                                        <th className="px-5 py-3">Email</th>
-                                        <th className="px-5 py-3">Statut</th>
-                                        <th className="px-5 py-3">Matchs assignés</th>
-                                        <th className="px-5 py-3 text-right">Actions</th>
+                                    <tr className="border-b border-rose-100 bg-[#fff1f2]/40 text-left text-[11px] font-extrabold uppercase tracking-[.18em] text-[#ff6b4a]">
+                                        <th className="px-5 py-3.5">Juge</th>
+                                        <th className="px-5 py-3.5">Email</th>
+                                        <th className="px-5 py-3.5">Statut</th>
+                                        <th className="px-5 py-3.5">Matchs assignés</th>
+                                        <th className="px-5 py-3.5 text-right">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {judges.map((judge) => (
                                         <tr
                                             key={judge.id}
-                                            className="border-b border-[#f1f3f7] last:border-0 hover:bg-[#fbfcfe]"
+                                            className="border-b border-rose-100/60 last:border-0 hover:bg-[#fff1f2]/20 transition-colors"
                                         >
                                             <td className="px-5 py-4">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="grid size-8 place-items-center rounded-full bg-[#dbe7ff] text-xs font-bold text-[#1b66f9]">
+                                                    <div className="grid size-8 place-items-center rounded-full bg-gradient-to-br from-[#FF6B4A] to-[#E63946] text-xs font-bold text-white shadow-xs">
                                                         {judge.user.name.charAt(0).toUpperCase()}
                                                     </div>
-                                                    <span className="font-semibold">{judge.user.name}</span>
+                                                    <span className="font-bold text-[#0f172a]">{judge.user.name}</span>
                                                 </div>
                                             </td>
-                                            <td className="px-5 py-4 text-[#7e8798]">{judge.user.email}</td>
+                                            <td className="px-5 py-4 font-semibold text-[#64748b]">{judge.user.email}</td>
                                             <td className="px-5 py-4">
                                                 <span
                                                     className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${judge.active
-                                                        ? 'bg-[#eefbf4] text-[#24a363]'
-                                                        : 'bg-[#f5f7fa] text-[#a0a8b6]'
+                                                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                                        : 'bg-slate-100 text-slate-500 border border-slate-200'
                                                         }`}
                                                 >
                                                     <span
-                                                        className={`size-1.5 rounded-full ${judge.active ? 'bg-[#37c47b]' : 'bg-[#a0a8b6]'
+                                                        className={`size-1.5 rounded-full ${judge.active ? 'bg-emerald-500' : 'bg-slate-400'
                                                             }`}
                                                     />
                                                     {judge.active ? 'Actif' : 'Inactif'}
                                                 </span>
                                             </td>
-                                            <td className="px-5 py-4 text-xs font-bold text-[#7e8798]">
+                                            <td className="px-5 py-4 text-xs font-bold text-[#64748b]">
                                                 {judge.assignments.length === 0
                                                     ? '—'
                                                     : `${judge.assignments.length} match${judge.assignments.length > 1 ? 's' : ''}`}
@@ -178,7 +178,7 @@ export default function JudgesPage() {
                                             <td className="px-5 py-4 text-right">
                                                 <button
                                                     onClick={() => void handleDelete(judge)}
-                                                    className="inline-flex items-center gap-1.5 rounded-lg border border-[#f9d0d0] bg-white px-3 py-1.5 text-xs font-bold text-[#f25555] hover:bg-[#fff3f1]"
+                                                    className="inline-flex items-center gap-1.5 rounded-xl border border-rose-200 bg-[#fff1f2] px-3.5 py-1.5 text-xs font-bold text-[#dc2626] hover:bg-rose-100 transition-colors"
                                                 >
                                                     <Trash2 className="size-3.5" />
                                                     Supprimer
@@ -230,7 +230,6 @@ function JudgeForm({
             const body = await res.json().catch(() => ({}))
             if (!res.ok) throw new Error(body.error || 'Création impossible.')
 
-            // Le backend renvoie { id, user, active } → on complète pour matcher le type Judge
             const judge: Judge = {
                 id: body.id,
                 active: body.active,
@@ -246,115 +245,111 @@ function JudgeForm({
     }
 
     return (
-        <AdminLayout>
-
-            <div
-                className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-                onClick={onClose}
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4"
+            onClick={onClose}
+        >
+            <form
+                onSubmit={handleSubmit}
+                onClick={(e) => e.stopPropagation()}
+                className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl border border-rose-100"
             >
-                <form
-                    onSubmit={handleSubmit}
-                    onClick={(e) => e.stopPropagation()}
-                    className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl"
-                >
-                    <div className="mb-5 flex items-start justify-between">
-                        <div>
-                            <h2 className="text-lg font-bold">Nouveau juge</h2>
-                            <p className="mt-0.5 text-xs text-[#7e8798]">
-                                Un compte JUDGE sera créé automatiquement.
-                            </p>
-                        </div>
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            aria-label="Fermer"
-                            className="text-[#a0a8b6] hover:text-[#202532]"
-                        >
-                            <X className="size-5" />
-                        </button>
-                    </div>
-
-                    <label className="mb-4 block">
-                        <span className="text-xs font-semibold text-[#7e8798]">
-                            Nom complet <span className="text-[#f25555]">*</span>
-                        </span>
-                        <input
-                            type="text"
-                            required
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            placeholder="Ahmed Ben Salah"
-                            className="mt-1 w-full rounded-lg border border-[#e2e6ed] px-3 py-2 text-sm outline-none focus:border-[#1b66f9]"
-                        />
-                    </label>
-
-                    <label className="mb-4 block">
-                        <span className="text-xs font-semibold text-[#7e8798]">
-                            Email <span className="text-[#f25555]">*</span>
-                        </span>
-                        <input
-                            type="email"
-                            required
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            placeholder="juge@dancebattle.fr"
-                            className="mt-1 w-full rounded-lg border border-[#e2e6ed] px-3 py-2 text-sm outline-none focus:border-[#1b66f9]"
-                        />
-                    </label>
-
-                    <label className="mb-4 block">
-                        <span className="text-xs font-semibold text-[#7e8798]">
-                            Mot de passe <span className="text-[#f25555]">*</span>
-                        </span>
-                        <input
-                            type="password"
-                            required
-                            minLength={8}
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            placeholder="•••••••• (min. 8 caractères)"
-                            className="mt-1 w-full rounded-lg border border-[#e2e6ed] px-3 py-2 text-sm outline-none focus:border-[#1b66f9]"
-                        />
-                        <p className="mt-1 text-[11px] text-[#a0a8b6]">
-                            Le juge utilisera ces identifiants dans l'app mobile.
+                <div className="mb-5 flex items-start justify-between">
+                    <div>
+                        <h2 className="text-lg font-bold text-[#0f172a]">Nouveau juge</h2>
+                        <p className="mt-0.5 text-xs text-[#64748b]">
+                            Un compte JUDGE sera créé automatiquement.
                         </p>
-                    </label>
-
-                    <label className="mb-5 flex items-center gap-2">
-                        <input
-                            type="checkbox"
-                            checked={active}
-                            onChange={(e) => setActive(e.target.checked)}
-                            className="size-4 rounded border-[#e2e6ed] text-[#1b66f9] focus:ring-[#1b66f9]"
-                        />
-                        <span className="text-xs font-semibold text-[#7e8798]">
-                            Compte actif (peut être assigné à des matchs)
-                        </span>
-                    </label>
-
-                    {error && (
-                        <p className="mb-4 text-xs font-semibold text-[#f25555]">{error}</p>
-                    )}
-
-                    <div className="mt-2 flex justify-end gap-2">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="rounded-xl border border-[#e2e6ed] px-4 py-2.5 text-sm font-semibold text-[#7e8798] hover:bg-[#f7f8fa]"
-                        >
-                            Annuler
-                        </button>
-                        <button
-                            type="submit"
-                            disabled={submitting || !name.trim() || !email.trim() || password.length < 8}
-                            className="rounded-xl bg-[#1b66f9] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#1059e5] disabled:bg-[#aebbd4]"
-                        >
-                            {submitting ? 'Création…' : 'Créer le juge'}
-                        </button>
                     </div>
-                </form>
-            </div>
-        </AdminLayout>
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        aria-label="Fermer"
+                        className="text-[#94a3b8] hover:text-[#e63946] transition-colors"
+                    >
+                        <X className="size-5" />
+                    </button>
+                </div>
 
+                <label className="mb-4 block">
+                    <span className="text-xs font-bold text-[#0f172a]">
+                        Nom complet <span className="text-[#e63946]">*</span>
+                    </span>
+                    <input
+                        type="text"
+                        required
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="Ahmed Ben Salah"
+                        className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:border-[#e63946] focus:ring-2 focus:ring-[#e63946]/20 transition-all"
+                    />
+                </label>
+
+                <label className="mb-4 block">
+                    <span className="text-xs font-bold text-[#0f172a]">
+                        Email <span className="text-[#e63946]">*</span>
+                    </span>
+                    <input
+                        type="email"
+                        required
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="juge@dancebattle.fr"
+                        className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:border-[#e63946] focus:ring-2 focus:ring-[#e63946]/20 transition-all"
+                    />
+                </label>
+
+                <label className="mb-4 block">
+                    <span className="text-xs font-bold text-[#0f172a]">
+                        Mot de passe <span className="text-[#e63946]">*</span>
+                    </span>
+                    <input
+                        type="password"
+                        required
+                        minLength={8}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="•••••••• (min. 8 caractères)"
+                        className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:border-[#e63946] focus:ring-2 focus:ring-[#e63946]/20 transition-all"
+                    />
+                    <p className="mt-1.5 text-[11px] font-medium text-[#94a3b8]">
+                        Le juge utilisera ces identifiants dans l'app mobile.
+                    </p>
+                </label>
+
+                <label className="mb-5 flex items-center gap-2.5 cursor-pointer">
+                    <input
+                        type="checkbox"
+                        checked={active}
+                        onChange={(e) => setActive(e.target.checked)}
+                        className="size-4 rounded accent-[#e63946]"
+                    />
+                    <span className="text-xs font-semibold text-[#64748b]">
+                        Compte actif (peut être assigné à des matchs)
+                    </span>
+                </label>
+
+                {error && (
+                    <p className="mb-4 text-xs font-semibold text-[#dc2626]">{error}</p>
+                )}
+
+                <div className="mt-3 flex justify-end gap-2.5">
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-[#64748b] hover:bg-slate-50 transition-colors"
+                    >
+                        Annuler
+                    </button>
+                    <button
+                        type="submit"
+                        disabled={submitting || !name.trim() || !email.trim() || password.length < 8}
+                        className="rounded-xl bg-gradient-to-r from-[#FF6B4A] to-[#E63946] px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-red-500/20 hover:opacity-95 disabled:opacity-50 transition-all"
+                    >
+                        {submitting ? 'Création…' : 'Créer le juge'}
+                    </button>
+                </div>
+            </form>
+        </div>
     )
 }

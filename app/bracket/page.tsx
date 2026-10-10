@@ -82,20 +82,20 @@ export default function BracketPage() {
 
     return (
         <AdminLayout>
-            <header className="flex h-[76px] items-center justify-between border-b border-[#e7e9ee] bg-white px-5 sm:px-8">
+            <header className="flex h-[76px] items-center justify-between border-b border-[#fee2e2] bg-white px-5 sm:px-8 shadow-2xs">
                 <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-[.18em] text-[#a0a8b6]">
+                    <p className="text-[11px] font-bold uppercase tracking-[.2em] text-[#ff6b4a]">
                         Compétition
                     </p>
-                    <h1 className="mt-1 text-[18px] font-bold tracking-tight">Tableau du tournoi</h1>
+                    <h1 className="mt-0.5 text-[20px] font-black tracking-tight text-[#0f172a]">Tableau du tournoi</h1>
                 </div>
                 <div className="flex items-center gap-3">
-                    <span className="hidden rounded-full bg-[#edf4ff] px-3 py-1.5 text-[11px] font-bold text-[#1b66f9] sm:inline-flex">
+                    <span className="hidden rounded-full bg-[#fff1f2] border border-rose-200 px-3 py-1.5 text-[11px] font-bold text-[#e63946] sm:inline-flex">
                         {matches.length} match{matches.length > 1 ? 's' : ''}
                     </span>
                     <Link
                         href="/matches"
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-[#e2e6ed] bg-white px-3 py-1.5 text-xs font-bold text-[#1b66f9] hover:bg-[#edf4ff]"
+                        className="inline-flex items-center gap-1.5 rounded-xl border border-rose-200 bg-white px-3.5 py-1.5 text-xs font-bold text-[#e63946] hover:bg-[#fff1f2] hover:border-[#ff6b4a] transition-all"
                     >
                         Gérer <ArrowRight className="size-3.5" />
                     </Link>
@@ -104,20 +104,20 @@ export default function BracketPage() {
 
             <div className="mx-auto max-w-[1400px] px-5 py-7 sm:px-8">
                 {error && (
-                    <div className="mb-5 rounded-xl border border-[#f9d0d0] bg-[#fff3f1] px-4 py-3 text-sm font-semibold text-[#f25555]">
+                    <div className="mb-5 rounded-2xl border border-rose-200 bg-[#fff1f2] px-4 py-3 text-sm font-semibold text-[#dc2626] shadow-2xs">
                         {error}
                     </div>
                 )}
 
                 {loading ? (
-                    <div className="rounded-2xl border border-[#e5e8ee] bg-white p-10 text-center text-sm text-[#7e8798]">
+                    <div className="rounded-2xl border border-rose-100 bg-white p-10 text-center text-sm font-medium text-[#64748b]">
                         Chargement…
                     </div>
                 ) : !hasAny ? (
-                    <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-[#e5e8ee] bg-white p-12 text-center">
-                        <Trophy className="size-8 text-[#a0a8b6]" />
-                        <p className="text-sm font-semibold">Aucun match dans le tableau</p>
-                        <p className="text-xs text-[#7e8798]">
+                    <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-rose-200 bg-white p-12 text-center">
+                        <Trophy className="size-9 text-[#ff6b4a]" />
+                        <p className="text-sm font-bold text-[#0f172a]">Aucun match dans le tableau</p>
+                        <p className="text-xs text-[#64748b]">
                             Créez des matchs avec les stages quart, demi et finale.
                         </p>
                     </div>
@@ -167,16 +167,15 @@ function BracketColumn({
     matches: Match[]
     isFinal?: boolean
 }) {
-    // Répartit les matchs verticalement dans la colonne
     const slots = isFinal ? 1 : matches.length === 1 ? 2 : matches.length || 1
 
     return (
         <div className="flex flex-1 flex-col">
             <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-xs font-bold uppercase tracking-[.14em] text-[#a0a8b6]">
+                <h2 className="text-xs font-extrabold uppercase tracking-[.18em] text-[#ff6b4a]">
                     {title}
                 </h2>
-                <span className="rounded-full bg-[#f5f7fa] px-2.5 py-0.5 text-[10px] font-bold text-[#7e8798]">
+                <span className="rounded-full bg-rose-50 border border-rose-100 px-2.5 py-0.5 text-[10px] font-bold text-[#e63946]">
                     {badge}
                 </span>
             </div>
@@ -198,7 +197,7 @@ function BracketColumn({
 function ColumnConnector() {
     return (
         <div className="flex w-6 items-center justify-center">
-            <div className="h-px w-full bg-[#d6d6e0]" />
+            <div className="h-0.5 w-full bg-rose-200" />
         </div>
     )
 }
@@ -217,26 +216,26 @@ function MatchCard({ match, highlight }: { match: Match; highlight?: boolean }) 
     const isFinished = Boolean(match.winnerId)
 
     const badge = {
-        PENDING: { bg: '#f5f7fa', fg: '#7e8798', label: 'En attente' },
-        OPEN: { bg: '#fff8e6', fg: '#d08500', label: 'En cours' },
-        CLOSED: { bg: '#eefbf4', fg: '#24a363', label: 'Terminé' },
+        PENDING: { bg: '#f1f5f9', fg: '#64748b', label: 'En attente' },
+        OPEN: { bg: '#fff7ed', fg: '#ea580c', label: 'En cours' },
+        CLOSED: { bg: '#ecfdf5', fg: '#059669', label: 'Terminé' },
     }[status]
 
     return (
         <Link
-            href={`/matches/${match.id}`}
-            className={`group block rounded-2xl border bg-white p-4 transition hover:shadow-[0_8px_30px_rgba(31,45,75,0.06)] ${highlight && isFinished
-                ? 'border-[#ffb84d] shadow-[0_0_0_3px_rgba(255,184,77,0.15)]'
-                : 'border-[#e5e8ee] hover:border-[#1b66f9]'
+            href={`/vote/${match.id}`}
+            className={`group block rounded-2xl border bg-white p-4 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 ${highlight && isFinished
+                ? 'border-[#ff6b4a] shadow-[0_0_0_3px_rgba(255,107,74,0.18)]'
+                : 'border-rose-100 hover:border-[#e63946]'
                 }`}
         >
             <div className="mb-3 flex items-center justify-between">
-                <span className="text-[10px] font-bold uppercase tracking-[.14em] text-[#a0a8b6]">
+                <span className="text-[10px] font-extrabold uppercase tracking-[.18em] text-[#ff6b4a]">
                     {match.name}
                 </span>
                 <span
-                    className="rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider"
-                    style={{ backgroundColor: badge.bg, color: badge.fg }}
+                    className="rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider border"
+                    style={{ backgroundColor: badge.bg, color: badge.fg, borderColor: `${badge.fg}30` }}
                 >
                     {badge.label}
                 </span>
@@ -260,9 +259,9 @@ function MatchCard({ match, highlight }: { match: Match; highlight?: boolean }) 
             </div>
 
             {isFinished && highlight && (
-                <div className="mt-3 flex items-center gap-2 rounded-xl bg-[#fff8e6] px-3 py-2">
-                    <Trophy className="size-3.5 text-[#d08500]" />
-                    <span className="text-[11px] font-bold text-[#d08500]">
+                <div className="mt-3 flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/70 px-3 py-2">
+                    <Trophy className="size-3.5 text-amber-600" />
+                    <span className="text-[11px] font-bold text-amber-700">
                         Vainqueur du tournoi
                     </span>
                 </div>
@@ -290,21 +289,21 @@ function CandidateRow({
 
     return (
         <div
-            className={`flex items-center gap-3 rounded-xl border px-3 py-2 transition ${isWinner
-                ? 'border-[#24a363] bg-[#eefbf4]'
-                : 'border-[#f1f3f7] bg-[#fbfcfe] group-hover:border-[#e5e8ee]'
+            className={`flex items-center gap-3 rounded-xl border px-3 py-2 transition-all ${isWinner
+                ? 'border-emerald-500 bg-emerald-50/60'
+                : 'border-slate-100 bg-[#fafafc] group-hover:border-rose-100'
                 }`}
         >
             <div className="flex min-w-0 flex-1 items-center gap-2">
-                <Users className={`size-3.5 shrink-0 ${isWinner ? 'text-[#24a363]' : 'text-[#a0a8b6]'}`} />
+                <Users className={`size-3.5 shrink-0 ${isWinner ? 'text-emerald-600' : 'text-[#94a3b8]'}`} />
                 <span
-                    className={`truncate text-xs font-semibold ${isWinner ? 'text-[#24a363]' : 'text-[#202532]'
+                    className={`truncate text-xs font-bold ${isWinner ? 'text-emerald-700' : 'text-[#0f172a]'
                         }`}
                 >
                     {display}
                 </span>
                 {seed != null && (
-                    <span className="shrink-0 rounded-md bg-white px-1.5 py-0.5 text-[9px] font-bold text-[#7e8798]">
+                    <span className="shrink-0 rounded-md bg-white border border-rose-100 px-1.5 py-0.5 text-[9px] font-bold text-[#e63946]">
                         #{seed}
                     </span>
                 )}
@@ -312,13 +311,13 @@ function CandidateRow({
 
             <div className="flex items-center gap-2">
                 {country && (
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#a0a8b6]">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#94a3b8]">
                         {country}
                     </span>
                 )}
                 {score != null && (
                     <span
-                        className={`w-12 text-right text-sm font-black ${isWinner ? 'text-[#24a363]' : 'text-[#7e8798]'
+                        className={`w-12 text-right text-sm font-black ${isWinner ? 'text-emerald-600' : 'text-[#64748b]'
                             }`}
                     >
                         {score.toFixed(1)}
@@ -331,8 +330,8 @@ function CandidateRow({
 
 function EmptySlot() {
     return (
-        <div className="flex min-h-[120px] items-center justify-center rounded-2xl border border-dashed border-[#e5e8ee] bg-[#fbfcfe] p-4">
-            <span className="text-[11px] font-semibold text-[#a0a8b6]">
+        <div className="flex min-h-[120px] items-center justify-center rounded-2xl border border-dashed border-rose-200 bg-white p-4">
+            <span className="text-[11px] font-semibold text-[#94a3b8]">
                 Match non défini
             </span>
         </div>

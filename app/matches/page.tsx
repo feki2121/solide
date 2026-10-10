@@ -11,7 +11,7 @@ type Tournament = { id: string; name: string }
 type Match = {
     id: string
     name: string
-    stage: 'QUARTER_FINAL' | 'SEMI_FINAL' | 'FINAL'
+    stage: 'QUALIFICATION' | 'QUARTER_FINAL' | 'SEMI_FINAL' | 'FINAL'
     winnerId: string | null
     candidateA: Candidate | null
     candidateB: Candidate | null
@@ -27,6 +27,7 @@ async function readJson<T>(res: Response): Promise<T> {
 }
 
 const stageLabels: Record<string, string> = {
+    QUALIFICATION: 'Qualification',
     QUARTER_FINAL: 'Quart de finale',
     SEMI_FINAL: 'Demi-finale',
     FINAL: 'Finale',
@@ -105,26 +106,25 @@ export default function MatchesPage() {
 
     return (
         <AdminLayout>
-
-            <main className="min-h-screen bg-[#f7f8fa] text-[#202532]">
+            <main className="min-h-screen bg-[#fafafc] text-[#0f172a]">
                 <div className="mx-auto max-w-[1200px] px-5 py-7 sm:px-8">
                     <div className="mb-7 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
                         <div>
-                            <p className="text-[11px] font-semibold uppercase tracking-[.18em] text-[#a0a8b6]">Compétition</p>
-                            <h1 className="mt-1 text-[28px] font-bold tracking-tight sm:text-[32px]">Matchs</h1>
-                            <p className="mt-1 text-sm text-[#7e8798]">{matches.length} match(s)</p>
+                            <p className="text-[11px] font-bold uppercase tracking-[.2em] text-[#ff6b4a]">Compétition</p>
+                            <h1 className="mt-1 text-[28px] font-black tracking-tight text-[#0f172a] sm:text-[32px]">Matchs</h1>
+                            <p className="mt-1 text-sm font-medium text-[#64748b]">{matches.length} match(s)</p>
                         </div>
                         <button
                             onClick={() => setShowForm(true)}
                             disabled={candidates.length < 2 || tournaments.length === 0}
-                            className="inline-flex items-center gap-2 rounded-xl bg-[#1b66f9] px-5 py-3 text-sm font-bold text-white hover:bg-[#1059e5] disabled:bg-[#aebbd4]"
+                            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#FF6B4A] to-[#E63946] px-5 py-3 text-sm font-bold text-white shadow-md shadow-red-500/20 hover:opacity-95 disabled:opacity-50 transition-all active:scale-[0.99]"
                         >
                             <Plus className="size-4" /> Nouveau match
                         </button>
                     </div>
 
                     {message && (
-                        <div className={`mb-5 rounded-xl border px-4 py-3 text-sm font-semibold ${message.type === 'success' ? 'border-[#c8efd9] bg-[#eefbf4] text-[#24a363]' : 'border-[#f9d0d0] bg-[#fff3f1] text-[#f25555]'}`}>
+                        <div className={`mb-5 rounded-2xl border px-4 py-3 text-sm font-semibold shadow-2xs ${message.type === 'success' ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-rose-200 bg-[#fff1f2] text-[#dc2626]'}`}>
                             {message.text}
                         </div>
                     )}
@@ -144,24 +144,24 @@ export default function MatchesPage() {
                     )}
 
                     {loading ? (
-                        <section className="rounded-2xl border border-[#e5e8ee] bg-white p-10 text-center text-sm text-[#7e8798]">Chargement…</section>
+                        <section className="rounded-2xl border border-rose-100 bg-white p-10 text-center text-sm font-medium text-[#64748b]">Chargement…</section>
                     ) : matches.length === 0 ? (
-                        <section className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-[#e5e8ee] bg-white p-12 text-center">
-                            <Swords className="size-8 text-[#a0a8b6]" />
-                            <p className="text-sm font-semibold">Aucun match</p>
-                            <p className="text-xs text-[#7e8798]">Créez un match à partir de deux candidats.</p>
+                        <section className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-rose-200 bg-white p-12 text-center">
+                            <Swords className="size-9 text-[#ff6b4a]" />
+                            <p className="text-sm font-bold text-[#0f172a]">Aucun match</p>
+                            <p className="text-xs text-[#64748b]">Créez un match à partir de deux candidats.</p>
                         </section>
                     ) : (
-                        <section className="overflow-hidden rounded-2xl border border-[#e5e8ee] bg-white shadow-[0_8px_30px_rgba(31,45,75,0.04)]">
+                        <section className="overflow-hidden rounded-2xl border border-rose-100 bg-white shadow-2xs">
                             <table className="w-full text-sm">
                                 <thead>
-                                    <tr className="border-b border-[#edf0f4] bg-[#fbfcfe] text-left text-[11px] font-bold uppercase tracking-[.14em] text-[#a0a8b6]">
-                                        <th className="px-5 py-3">Match</th>
-                                        <th className="px-5 py-3">Stage</th>
-                                        <th className="px-5 py-3">Affrontement</th>
-                                        <th className="px-5 py-3">Rounds</th>
-                                        <th className="px-5 py-3">Statut</th>
-                                        <th className="px-5 py-3 text-right">Actions</th>
+                                    <tr className="border-b border-rose-100 bg-[#fff1f2]/40 text-left text-[11px] font-extrabold uppercase tracking-[.18em] text-[#ff6b4a]">
+                                        <th className="px-5 py-3.5">Match</th>
+                                        <th className="px-5 py-3.5">Stage</th>
+                                        <th className="px-5 py-3.5">Affrontement</th>
+                                        <th className="px-5 py-3.5">Rounds</th>
+                                        <th className="px-5 py-3.5">Statut</th>
+                                        <th className="px-5 py-3.5 text-right">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -177,47 +177,47 @@ export default function MatchesPage() {
                                                     : null
 
                                         return (
-                                            <tr key={m.id} className="border-b border-[#f1f3f7] last:border-0 hover:bg-[#fbfcfe]">
+                                            <tr key={m.id} className="border-b border-rose-100/60 last:border-0 hover:bg-[#fff1f2]/20 transition-colors">
                                                 <td className="px-5 py-4">
                                                     <div className="flex items-center gap-2">
-                                                        <span className="font-semibold">{m.name}</span>
+                                                        <span className="font-bold text-[#0f172a]">{m.name}</span>
                                                         {isFinished && (
-                                                            <span className="inline-flex items-center gap-1 rounded-full bg-[#eefbf4] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#24a363]">
+                                                            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-700">
                                                                 <CheckCircle2 className="size-3" /> Terminé
                                                             </span>
                                                         )}
                                                     </div>
                                                     {isFinished && winnerName && (
-                                                        <p className="mt-0.5 text-[11px] text-[#24a363]">🏆 {winnerName}</p>
+                                                        <p className="mt-0.5 text-[11px] font-semibold text-emerald-600">🏆 {winnerName}</p>
                                                     )}
                                                 </td>
-                                                <td className="px-5 py-4 text-xs font-bold uppercase tracking-wider text-[#7e8798]">
+                                                <td className="px-5 py-4 text-xs font-bold uppercase tracking-wider text-[#ff6b4a]">
                                                     {stageLabels[m.stage] ?? m.stage}
                                                 </td>
                                                 <td className="px-5 py-4">
-                                                    <span className={`font-semibold ${m.winnerId === m.candidateA?.id ? 'text-[#24a363]' : ''}`}>
+                                                    <span className={`font-bold ${m.winnerId === m.candidateA?.id ? 'text-emerald-600' : 'text-[#0f172a]'}`}>
                                                         {m.candidateA?.name ?? 'TBD'}
                                                     </span>
-                                                    <span className="mx-2 font-bold text-[#f25555]">vs</span>
-                                                    <span className={`font-semibold ${m.winnerId === m.candidateB?.id ? 'text-[#24a363]' : ''}`}>
+                                                    <span className="mx-2 font-black text-[#e63946]">VS</span>
+                                                    <span className={`font-bold ${m.winnerId === m.candidateB?.id ? 'text-emerald-600' : 'text-[#0f172a]'}`}>
                                                         {m.candidateB?.name ?? 'TBD'}
                                                     </span>
                                                 </td>
-                                                <td className="px-5 py-4 text-xs text-[#7e8798]">{m.rounds.length} round(s)</td>
+                                                <td className="px-5 py-4 text-xs font-semibold text-[#64748b]">{m.rounds.length} round(s)</td>
                                                 <td className="px-5 py-4">
                                                     {isFinished ? (
-                                                        <span className="inline-flex items-center gap-1.5 rounded-full bg-[#eefbf4] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#24a363]">
-                                                            <span className="size-1.5 rounded-full bg-[#37c47b]" />
+                                                        <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-emerald-700">
+                                                            <span className="size-1.5 rounded-full bg-emerald-500" />
                                                             Terminé
                                                         </span>
                                                     ) : allRoundsClosed ? (
-                                                        <span className="inline-flex items-center gap-1.5 rounded-full bg-[#fff8e6] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#d08500]">
-                                                            <span className="size-1.5 rounded-full bg-[#ffb84d]" />
+                                                        <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 border border-amber-200 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-amber-700">
+                                                            <span className="size-1.5 rounded-full bg-amber-500" />
                                                             Prêt à clôturer
                                                         </span>
                                                     ) : (
-                                                        <span className="inline-flex items-center gap-1.5 rounded-full bg-[#f5f7fa] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#a0a8b6]">
-                                                            <span className="size-1.5 rounded-full bg-[#a0a8b6]" />
+                                                        <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 border border-rose-200 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#e63946]">
+                                                            <span className="size-1.5 rounded-full bg-[#e63946]" />
                                                             En cours
                                                         </span>
                                                     )}
@@ -226,13 +226,13 @@ export default function MatchesPage() {
                                                     <div className="inline-flex items-center gap-2">
                                                         <Link
                                                             href={`/matches/${m.id}`}
-                                                            className="rounded-lg border border-[#e2e6ed] bg-white px-3 py-1.5 text-xs font-bold text-[#1b66f9] hover:bg-[#edf4ff]"
+                                                            className="rounded-xl border border-rose-200 bg-white px-3.5 py-1.5 text-xs font-bold text-[#e63946] hover:bg-[#fff1f2] transition-colors"
                                                         >
                                                             Rounds
                                                         </Link>
 
                                                         {isFinished ? (
-                                                            <span className="inline-flex items-center gap-1.5 rounded-lg bg-[#eefbf4] px-3 py-1.5 text-xs font-bold text-[#24a363]">
+                                                            <span className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-50 border border-emerald-200 px-3 py-1.5 text-xs font-bold text-emerald-700">
                                                                 <CheckCircle2 className="size-3.5" /> Clos
                                                             </span>
                                                         ) : (
@@ -244,7 +244,7 @@ export default function MatchesPage() {
                                                                         ? 'Tous les rounds doivent être fermés'
                                                                         : 'Calculer le résultat final'
                                                                 }
-                                                                className="inline-flex items-center gap-1.5 rounded-lg border border-[#c8efd9] bg-[#eefbf4] px-3 py-1.5 text-xs font-bold text-[#24a363] hover:bg-[#d9f6e5] disabled:cursor-not-allowed disabled:border-[#e2e6ed] disabled:bg-[#f5f7fa] disabled:text-[#a0a8b6]"
+                                                                className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700 hover:bg-emerald-100 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400 transition-colors"
                                                             >
                                                                 <Lock className="size-3.5" /> Clôturer
                                                             </button>
@@ -254,7 +254,7 @@ export default function MatchesPage() {
                                                             onClick={() => void handleDelete(m.id, m.name)}
                                                             disabled={isFinished}
                                                             title={isFinished ? 'Impossible de supprimer un match terminé' : undefined}
-                                                            className="inline-flex items-center gap-1.5 rounded-lg border border-[#f9d0d0] bg-white px-3 py-1.5 text-xs font-bold text-[#f25555] hover:bg-[#fff3f1] disabled:cursor-not-allowed disabled:border-[#e2e6ed] disabled:text-[#a0a8b6]"
+                                                            className="inline-flex items-center gap-1.5 rounded-xl border border-rose-200 bg-[#fff1f2] px-3 py-1.5 text-xs font-bold text-[#dc2626] hover:bg-rose-100 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400 transition-colors"
                                                         >
                                                             <Trash2 className="size-3.5" /> Suppr.
                                                         </button>
@@ -270,7 +270,6 @@ export default function MatchesPage() {
                 </div>
             </main>
         </AdminLayout>
-
     )
 }
 
@@ -280,7 +279,7 @@ function MatchForm({ tournaments, candidates, judges, onClose, onCreated }: {
 }) {
     const [tournamentId, setTournamentId] = useState(tournaments[0]?.id ?? '')
     const [name, setName] = useState('')
-    const [stage, setStage] = useState<'QUARTER_FINAL' | 'SEMI_FINAL' | 'FINAL'>('QUARTER_FINAL')
+    const [stage, setStage] = useState<'QUALIFICATION' | 'QUARTER_FINAL' | 'SEMI_FINAL' | 'FINAL'>('QUARTER_FINAL')
     const [candidateAId, setCandidateAId] = useState('')
     const [candidateBId, setCandidateBId] = useState('')
     const [judgeIds, setJudgeIds] = useState<string[]>([])
@@ -317,28 +316,29 @@ function MatchForm({ tournaments, candidates, judges, onClose, onCreated }: {
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
-            <form onSubmit={handleSubmit} onClick={(e) => e.stopPropagation()} className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-6 shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4" onClick={onClose}>
+            <form onSubmit={handleSubmit} onClick={(e) => e.stopPropagation()} className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-6 shadow-xl border border-rose-100">
                 <div className="mb-5 flex items-start justify-between">
-                    <h2 className="text-lg font-bold">Nouveau match</h2>
-                    <button type="button" onClick={onClose} className="text-[#a0a8b6] hover:text-[#202532]"><X className="size-5" /></button>
+                    <h2 className="text-lg font-bold text-[#0f172a]">Nouveau match</h2>
+                    <button type="button" onClick={onClose} className="text-[#94a3b8] hover:text-[#e63946] transition-colors"><X className="size-5" /></button>
                 </div>
 
                 <label className="mb-4 block">
-                    <span className="text-xs font-semibold text-[#7e8798]">Tournoi <span className="text-[#f25555]">*</span></span>
-                    <select required value={tournamentId} onChange={(e) => setTournamentId(e.target.value)} className="mt-1 w-full rounded-lg border border-[#e2e6ed] px-3 py-2 text-sm">
+                    <span className="text-xs font-bold text-[#0f172a]">Tournoi <span className="text-[#e63946]">*</span></span>
+                    <select required value={tournamentId} onChange={(e) => setTournamentId(e.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:border-[#e63946] focus:ring-2 focus:ring-[#e63946]/20 transition-all">
                         {tournaments.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
                     </select>
                 </label>
 
                 <label className="mb-4 block">
-                    <span className="text-xs font-semibold text-[#7e8798]">Nom du match <span className="text-[#f25555]">*</span></span>
-                    <input required value={name} onChange={(e) => setName(e.target.value)} placeholder="Quarter Final #1" className="mt-1 w-full rounded-lg border border-[#e2e6ed] px-3 py-2 text-sm" />
+                    <span className="text-xs font-bold text-[#0f172a]">Nom du match <span className="text-[#e63946]">*</span></span>
+                    <input required value={name} onChange={(e) => setName(e.target.value)} placeholder="Quarter Final #1" className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:border-[#e63946] focus:ring-2 focus:ring-[#e63946]/20 transition-all" />
                 </label>
 
                 <label className="mb-4 block">
-                    <span className="text-xs font-semibold text-[#7e8798]">Stage <span className="text-[#f25555]">*</span></span>
-                    <select value={stage} onChange={(e) => setStage(e.target.value as any)} className="mt-1 w-full rounded-lg border border-[#e2e6ed] px-3 py-2 text-sm">
+                    <span className="text-xs font-bold text-[#0f172a]">Stage <span className="text-[#e63946]">*</span></span>
+                    <select value={stage} onChange={(e) => setStage(e.target.value as any)} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:border-[#e63946] focus:ring-2 focus:ring-[#e63946]/20 transition-all">
+                        <option value="QUALIFICATION">Qualification</option>
                         <option value="QUARTER_FINAL">Quart de finale</option>
                         <option value="SEMI_FINAL">Demi-finale</option>
                         <option value="FINAL">Finale</option>
@@ -347,15 +347,15 @@ function MatchForm({ tournaments, candidates, judges, onClose, onCreated }: {
 
                 <div className="mb-4 grid grid-cols-2 gap-3">
                     <label className="block">
-                        <span className="text-xs font-semibold text-[#7e8798]">Candidat A</span>
-                        <select value={candidateAId} onChange={(e) => setCandidateAId(e.target.value)} className="mt-1 w-full rounded-lg border border-[#e2e6ed] px-3 py-2 text-sm">
+                        <span className="text-xs font-bold text-[#0f172a]">Candidat A</span>
+                        <select value={candidateAId} onChange={(e) => setCandidateAId(e.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:border-[#e63946] focus:ring-2 focus:ring-[#e63946]/20 transition-all">
                             <option value="">— Sélectionner —</option>
                             {candidates.filter((c) => c.id !== candidateBId).map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                         </select>
                     </label>
                     <label className="block">
-                        <span className="text-xs font-semibold text-[#7e8798]">Candidat B</span>
-                        <select value={candidateBId} onChange={(e) => setCandidateBId(e.target.value)} className="mt-1 w-full rounded-lg border border-[#e2e6ed] px-3 py-2 text-sm">
+                        <span className="text-xs font-bold text-[#0f172a]">Candidat B</span>
+                        <select value={candidateBId} onChange={(e) => setCandidateBId(e.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:border-[#e63946] focus:ring-2 focus:ring-[#e63946]/20 transition-all">
                             <option value="">— Sélectionner —</option>
                             {candidates.filter((c) => c.id !== candidateAId).map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                         </select>
@@ -363,18 +363,18 @@ function MatchForm({ tournaments, candidates, judges, onClose, onCreated }: {
                 </div>
 
                 <div className="mb-4">
-                    <span className="text-xs font-semibold text-[#7e8798]">Juges assignés</span>
+                    <span className="text-xs font-bold text-[#0f172a]">Juges assignés</span>
                     <div className="mt-2 flex flex-wrap gap-2">
                         {judges.length === 0 ? (
-                            <p className="text-xs text-[#a0a8b6]">Aucun juge disponible.</p>
+                            <p className="text-xs text-[#94a3b8]">Aucun juge disponible.</p>
                         ) : judges.map((j) => (
                             <button
                                 key={j.id}
                                 type="button"
                                 onClick={() => toggleJudge(j.id)}
-                                className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${judgeIds.includes(j.id)
-                                    ? 'border-[#1b66f9] bg-[#edf4ff] text-[#1b66f9]'
-                                    : 'border-[#e2e6ed] bg-white text-[#7e8798] hover:bg-[#f7f8fa]'
+                                className={`rounded-full border px-3 py-1.5 text-xs font-bold transition-all ${judgeIds.includes(j.id)
+                                    ? 'border-[#e63946] bg-[#fff1f2] text-[#e63946]'
+                                    : 'border-slate-200 bg-white text-[#64748b] hover:bg-slate-50'
                                     }`}
                             >
                                 {j.user.name}
@@ -383,11 +383,11 @@ function MatchForm({ tournaments, candidates, judges, onClose, onCreated }: {
                     </div>
                 </div>
 
-                {error && <p className="mb-4 text-xs font-semibold text-[#f25555]">{error}</p>}
+                {error && <p className="mb-4 text-xs font-semibold text-[#dc2626]">{error}</p>}
 
-                <div className="flex justify-end gap-2">
-                    <button type="button" onClick={onClose} className="rounded-xl border border-[#e2e6ed] px-4 py-2.5 text-sm font-semibold text-[#7e8798] hover:bg-[#f7f8fa]">Annuler</button>
-                    <button type="submit" disabled={submitting || !name.trim()} className="rounded-xl bg-[#1b66f9] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#1059e5] disabled:bg-[#aebbd4]">
+                <div className="mt-3 flex justify-end gap-2.5">
+                    <button type="button" onClick={onClose} className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-[#64748b] hover:bg-slate-50 transition-colors">Annuler</button>
+                    <button type="submit" disabled={submitting || !name.trim()} className="rounded-xl bg-gradient-to-r from-[#FF6B4A] to-[#E63946] px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-red-500/20 hover:opacity-95 disabled:opacity-50 transition-all">
                         {submitting ? 'Création…' : 'Créer'}
                     </button>
                 </div>
