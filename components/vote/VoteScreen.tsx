@@ -279,8 +279,8 @@ export function VoteScreen({ matchId }: { matchId: string }) {
                                     key={round.id}
                                     onClick={() => handleRoundSelect(round)}
                                     className={`flex flex-1 flex-col items-center gap-1 rounded-xl border px-2 py-3 transition ${selected
-                                            ? 'border-[#FF0000] bg-[#FF0000]/10'
-                                            : 'border-white/10 bg-[#1A1D22] hover:bg-[#22262E]'
+                                        ? 'border-[#FF0000] bg-[#FF0000]/10'
+                                        : 'border-white/10 bg-[#1A1D22] hover:bg-[#22262E]'
                                         }`}
                                 >
                                     <span
@@ -341,8 +341,8 @@ export function VoteScreen({ matchId }: { matchId: string }) {
                         {notice && (
                             <div
                                 className={`flex items-center gap-2.5 rounded-xl border px-4 py-3 ${notice.tone === 'success'
-                                        ? 'border-[#22C55E]/30 bg-[#22C55E]/10'
-                                        : 'border-[#FF3B3B]/30 bg-[#FF3B3B]/10'
+                                    ? 'border-[#22C55E]/30 bg-[#22C55E]/10'
+                                    : 'border-[#FF3B3B]/30 bg-[#FF3B3B]/10'
                                     }`}
                             >
                                 {notice.tone === 'success' ? (

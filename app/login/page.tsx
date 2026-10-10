@@ -23,7 +23,7 @@ export default function LoginPage() {
             })
             const body = await res.json()
             if (!res.ok) throw new Error(body.error || 'Erreur de connexion')
-            router.push('/')          // redirige vers la page principale
+            router.push('/tournaments')          // redirige vers la page principale
             router.refresh()
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Erreur inconnue')

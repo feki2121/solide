@@ -1,7 +1,7 @@
 'use client'
-
 import { useCallback, useEffect, useState } from 'react'
-import { Plus, Trash2, Trophy, X } from 'lucide-react'
+import Link from 'next/link'
+import { Plus, Trophy, X } from 'lucide-react'
 import { AdminLayout } from '@/components/ui/admin/Layout'
 
 type Tournament = {
@@ -97,9 +97,12 @@ export default function TournamentsPage() {
                                     <h3 className="text-base font-bold text-[#0f172a]">{t.name}</h3>
                                     <p className="mt-1 text-xs font-medium text-[#94a3b8]">Créé le {new Date(t.createdAt).toLocaleDateString('fr-FR')}</p>
                                     <div className="mt-4 flex justify-end border-t border-rose-100/60 pt-3">
-                                        <a href={`/matches?tournamentId=${t.id}`} className="text-xs font-bold text-[#e63946] hover:text-[#ff6b4a] transition-colors">
-                                            Voir les matchs →
-                                        </a>
+                                        <Link
+                                            href={`/bracket?tournamentId=${t.id}`}
+                                            className="text-xs font-bold text-[#e63946] hover:text-[#ff6b4a] transition-colors"
+                                        >
+                                            Voir le tableau →
+                                        </Link>
                                     </div>
                                 </article>
                             ))}

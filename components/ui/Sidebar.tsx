@@ -20,13 +20,13 @@ import {
 } from 'lucide-react'
 
 const navItems = [
-    { label: 'Dashboard', href: '/', icon: LayoutDashboard },
-    { label: 'Tableau', href: '/bracket', icon: Award },
+    // { label: 'Dashboard', href: '/', icon: LayoutDashboard },
+    { label: 'Dashboard', href: '/bracket', icon: LayoutDashboard },
     { label: 'Candidats', href: '/candidates', icon: Users },
     { label: 'Jurys', href: '/judges', icon: ShieldCheck },
     { label: 'Tournoi', href: '/tournaments', icon: Trophy },
     { label: 'Matchs', href: '/matches', icon: ClipboardList },
-    { label: 'Rounds', href: '/rounds', icon: List },
+    // { label: 'Rounds', href: '/rounds', icon: List },
     { label: 'Résultats', href: '/results', icon: ListChecks },
 ]
 
@@ -120,14 +120,14 @@ export function Sidebar() {
                     </nav>
 
                     <div className="mt-auto border-t border-[#fee2e2] pt-4">
-                        <button className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-[13px] font-semibold text-[#64748b] hover:bg-[#fff1f2]/50 hover:text-[#e63946] transition-colors">
+                        {/* <button className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-[13px] font-semibold text-[#64748b] hover:bg-[#fff1f2]/50 hover:text-[#e63946] transition-colors">
                             <Settings className="size-[17px]" />
                             Paramètres
                         </button>
                         <button className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-[13px] font-semibold text-[#64748b] hover:bg-[#fff1f2]/50 hover:text-[#e63946] transition-colors">
                             <CircleHelp className="size-[17px]" />
                             Aide & support
-                        </button>
+                        </button> */}
                         <button
                             onClick={handleLogout}
                             className="mt-1 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[13px] font-semibold text-[#dc2626] hover:bg-[#fff1f2] transition-colors"
