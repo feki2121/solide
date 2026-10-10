@@ -26,9 +26,10 @@ export function FullscreenButton() {
 
     return (
         <button
+            type="button"
             onClick={() => void toggle()}
             aria-label={isFullscreen ? 'Quitter le plein écran' : 'Plein écran'}
-            className="flex size-10 items-center justify-center rounded-full border border-white/10 bg-[#1A1D22] text-[#A8AEB8] transition hover:bg-[#22262E] hover:text-white"
+            className="flex size-10 items-center justify-center rounded-full border border-rose-100 bg-white text-[#64748b] shadow-2xs outline-none transition hover:border-rose-200 hover:bg-[#fff1f2] hover:text-[#e63946] focus-visible:ring-2 focus-visible:ring-[#ff6b4a]/40 active:scale-95"
         >
             {isFullscreen ? <Minimize2 className="size-5" /> : <Maximize2 className="size-5" />}
         </button>

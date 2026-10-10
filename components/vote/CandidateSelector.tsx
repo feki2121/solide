@@ -20,9 +20,9 @@ export function CandidateSelector({
                 type="button"
                 onClick={onPickA}
                 disabled={disabled}
-                className="group flex flex-1 flex-col items-center gap-2 rounded-xl px-2 py-1 transition hover:bg-[#fff1f2]/60 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent"
+                className="group flex flex-1 flex-col items-center gap-2 rounded-xl px-2 py-1 outline-none transition hover:bg-[#fff1f2]/60 focus-visible:ring-2 focus-visible:ring-[#ff6b4a]/40 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent"
             >
-                <div className="flex size-10 items-center justify-center rounded-full bg-gradient-to-br from-sky-400 to-indigo-500 text-white shadow-sm transition group-hover:scale-105">
+                <div className="flex size-10 items-center justify-center rounded-full bg-gradient-to-br from-sky-400 to-indigo-500 text-white shadow-sm transition group-hover:scale-105 group-active:scale-95">
                     <span className="text-base font-black">
                         {nameA.charAt(0).toUpperCase()}
                     </span>
@@ -47,9 +47,9 @@ export function CandidateSelector({
                 type="button"
                 onClick={onPickB}
                 disabled={disabled}
-                className="group flex flex-1 flex-col items-center gap-2 rounded-xl px-2 py-1 transition hover:bg-[#fff1f2]/60 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent"
+                className="group flex flex-1 flex-col items-center gap-2 rounded-xl px-2 py-1 outline-none transition hover:bg-[#fff1f2]/60 focus-visible:ring-2 focus-visible:ring-[#ff6b4a]/40 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent"
             >
-                <div className="flex size-10 items-center justify-center rounded-full bg-gradient-to-br from-fuchsia-400 to-rose-500 text-white shadow-sm transition group-hover:scale-105">
+                <div className="flex size-10 items-center justify-center rounded-full bg-gradient-to-br from-fuchsia-400 to-rose-500 text-white shadow-sm transition group-hover:scale-105 group-active:scale-95">
                     <span className="text-base font-black">
                         {nameB.charAt(0).toUpperCase()}
                     </span>
