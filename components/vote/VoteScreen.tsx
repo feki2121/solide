@@ -7,7 +7,6 @@ import {
     ArrowLeft,
     CheckCircle2,
     Loader2,
-    Trophy,
 } from 'lucide-react'
 
 import { CriterionRow } from './CriterionRow'
@@ -50,17 +49,13 @@ type MatchDetail = {
 
 type Notice = { tone: 'success' | 'error'; message: string } | null
 
-const criteria: {
-    key: Criterion
-    label: string
-    icon: string
-}[] = [
-        { key: 'technique', label: 'Technique', icon: '⚡' },
-        { key: 'vocabulary', label: 'Vocabulaire', icon: '📖' },
-        { key: 'originality', label: 'Originalité', icon: '✨' },
-        { key: 'musicality', label: 'Musicalité', icon: '🎵' },
-        { key: 'execution', label: 'Exécution', icon: '✓' },
-    ]
+const criteria: { key: Criterion; label: string; icon: string }[] = [
+    { key: 'technique', label: 'Technique', icon: '⚡' },
+    { key: 'vocabulary', label: 'Vocabulaire', icon: '📖' },
+    { key: 'originality', label: 'Originalité', icon: '✨' },
+    { key: 'musicality', label: 'Musicalité', icon: '🎵' },
+    { key: 'execution', label: 'Exécution', icon: '✓' },
+]
 
 const EMPTY_SCORES: Record<Criterion, number> = {
     technique: 50,
@@ -198,25 +193,26 @@ export function VoteScreen({ matchId }: { matchId: string }) {
         }
     }
 
-    /* ───── Loading / Error ───── */
+    /* ───── Loading ───── */
     if (isLoading && !match) {
         return (
-            <div className="flex min-h-screen items-center justify-center bg-[#0C0F14]">
-                <Loader2 className="size-8 animate-spin text-[#FF0000]" />
+            <div className="flex min-h-screen items-center justify-center bg-[#fafafc]">
+                <Loader2 className="size-8 animate-spin text-[#e63946]" />
             </div>
         )
     }
 
+    /* ───── Error ───── */
     if (error || !match) {
         return (
-            <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[#0C0F14] p-6">
-                <AlertCircle className="size-12 text-[#FF3B3B]" />
-                <p className="text-center text-lg font-semibold text-white">
+            <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[#fafafc] p-6">
+                <AlertCircle className="size-12 text-[#e63946]" />
+                <p className="text-center text-lg font-semibold text-[#0f172a]">
                     {error ?? 'Match introuvable'}
                 </p>
                 <Link
                     href="/"
-                    className="rounded-xl bg-[#FF0000] px-6 py-3 text-sm font-bold text-white"
+                    className="rounded-xl bg-[#e63946] px-6 py-3 text-sm font-bold text-white shadow-md shadow-rose-500/20 transition hover:bg-[#ff6b4a]"
                 >
                     Retour à l'accueil
                 </Link>
@@ -226,20 +222,20 @@ export function VoteScreen({ matchId }: { matchId: string }) {
 
     /* ───── Rendu principal ───── */
     return (
-        <div className="min-h-screen bg-[#0C0F14] text-white">
+        <div className="min-h-screen bg-[#fafafc] text-[#0f172a]">
             <div className="mx-auto flex min-h-screen max-w-5xl flex-col gap-5 px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
                 {/* Barre du haut */}
                 <header className="flex items-center justify-between gap-3">
                     <Link
                         href="/"
                         aria-label="Retour"
-                        className="flex size-10 items-center justify-center rounded-full border border-white/10 bg-[#1A1D22] text-[#FF0000] transition hover:bg-[#22262E]"
+                        className="flex size-10 items-center justify-center rounded-full border border-rose-100 bg-white text-[#e63946] shadow-2xs transition hover:bg-[#fff1f2] hover:border-rose-200"
                     >
                         <ArrowLeft className="size-5" />
                     </Link>
 
-                    <div className="flex items-center gap-2 rounded-full border border-[#FF0000]/25 bg-[#FF0000]/10 px-3 py-1.5">
-                        <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#FF0000]">
+                    <div className="flex items-center gap-2 rounded-full border border-rose-200 bg-[#fff1f2] px-3 py-1.5">
+                        <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#e63946]">
                             {STAGE_LABELS[match.stage] ?? match.stage}
                         </span>
                     </div>
@@ -256,7 +252,7 @@ export function VoteScreen({ matchId }: { matchId: string }) {
                     onPickB={() => setAllTo('B')}
                 />
 
-                <p className="text-center text-[11px] text-[#6B7280]">
+                <p className="text-center text-[11px] text-[#94a3b8]">
                     Tapez un nom pour tout mettre de son côté · glissez les sliders pour ajuster
                 </p>
 
@@ -268,10 +264,10 @@ export function VoteScreen({ matchId }: { matchId: string }) {
                             const isOpen = round.status === 'OPEN'
                             const isClosed = round.status === 'CLOSED'
                             const accent = isOpen
-                                ? '#22C55E'
+                                ? '#22c55e'
                                 : isClosed
-                                    ? '#6B7280'
-                                    : '#F59E0B'
+                                    ? '#94a3b8'
+                                    : '#f59e0b'
                             const label = isOpen ? 'Ouvert' : isClosed ? 'Fermé' : 'En attente'
 
                             return (
@@ -279,12 +275,12 @@ export function VoteScreen({ matchId }: { matchId: string }) {
                                     key={round.id}
                                     onClick={() => handleRoundSelect(round)}
                                     className={`flex flex-1 flex-col items-center gap-1 rounded-xl border px-2 py-3 transition ${selected
-                                        ? 'border-[#FF0000] bg-[#FF0000]/10'
-                                        : 'border-white/10 bg-[#1A1D22] hover:bg-[#22262E]'
+                                        ? 'border-[#e63946] bg-[#fff1f2] shadow-2xs'
+                                        : 'border-rose-100 bg-white hover:border-rose-200 hover:bg-[#fff1f2]/50'
                                         }`}
                                 >
                                     <span
-                                        className={`text-xs font-extrabold tracking-wide ${selected ? 'text-[#FF0000]' : 'text-white'
+                                        className={`text-xs font-extrabold tracking-wide ${selected ? 'text-[#e63946]' : 'text-[#0f172a]'
                                             }`}
                                     >
                                         R{round.number}
@@ -312,9 +308,9 @@ export function VoteScreen({ matchId }: { matchId: string }) {
                         nameB={nameB}
                     />
                 ) : selectedRound?.status === 'PENDING' ? (
-                    <div className="flex items-center gap-3 rounded-xl border border-[#F59E0B]/30 bg-[#F59E0B]/10 px-4 py-3.5">
-                        <AlertCircle className="size-5 shrink-0 text-[#F59E0B]" />
-                        <p className="text-sm font-bold text-[#F59E0B]">
+                    <div className="flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3.5">
+                        <AlertCircle className="size-5 shrink-0 text-amber-600" />
+                        <p className="text-sm font-bold text-amber-700">
                             Ce round n'est pas ouvert au vote.
                         </p>
                     </div>
@@ -341,17 +337,17 @@ export function VoteScreen({ matchId }: { matchId: string }) {
                         {notice && (
                             <div
                                 className={`flex items-center gap-2.5 rounded-xl border px-4 py-3 ${notice.tone === 'success'
-                                    ? 'border-[#22C55E]/30 bg-[#22C55E]/10'
-                                    : 'border-[#FF3B3B]/30 bg-[#FF3B3B]/10'
+                                    ? 'border-emerald-200 bg-emerald-50'
+                                    : 'border-rose-200 bg-[#fff1f2]'
                                     }`}
                             >
                                 {notice.tone === 'success' ? (
-                                    <CheckCircle2 className="size-5 shrink-0 text-[#22C55E]" />
+                                    <CheckCircle2 className="size-5 shrink-0 text-emerald-600" />
                                 ) : (
-                                    <AlertCircle className="size-5 shrink-0 text-[#FF3B3B]" />
+                                    <AlertCircle className="size-5 shrink-0 text-[#e63946]" />
                                 )}
                                 <p
-                                    className={`flex-1 text-sm font-bold ${notice.tone === 'success' ? 'text-[#22C55E]' : 'text-[#FF3B3B]'
+                                    className={`flex-1 text-sm font-bold ${notice.tone === 'success' ? 'text-emerald-700' : 'text-[#dc2626]'
                                         }`}
                                 >
                                     {notice.message}
@@ -362,7 +358,7 @@ export function VoteScreen({ matchId }: { matchId: string }) {
                         <button
                             onClick={() => void handleSubmit()}
                             disabled={isSaving || isRoundLocked}
-                            className="mt-2 flex items-center justify-center gap-2 rounded-xl bg-[#FF0000] px-6 py-4 text-sm font-extrabold text-white shadow-lg shadow-[#FF0000]/30 transition hover:bg-[#E60000] disabled:cursor-not-allowed disabled:bg-[#5A1A1A] disabled:shadow-none"
+                            className="mt-2 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#ff6b4a] to-[#e63946] px-6 py-4 text-sm font-extrabold text-white shadow-lg shadow-rose-500/20 transition hover:opacity-95 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:bg-none disabled:shadow-none"
                         >
                             {isSaving ? (
                                 <>
