@@ -101,29 +101,6 @@ export default function BracketContent() {
 
     return (
         <AdminLayout>
-            {/* Header compact sticky */}
-            <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-[#fee2e2] bg-white/90 px-4 py-2.5 backdrop-blur sm:px-6">
-                <div className="min-w-0">
-                    <p className="text-[10px] font-bold uppercase tracking-[.2em] text-[#ff6b4a]">
-                        Compétition
-                    </p>
-                    <h1 className="truncate text-base font-black tracking-tight text-[#0f172a] sm:text-lg">
-                        Tableau du tournoi
-                    </h1>
-                </div>
-                <div className="flex shrink-0 items-center gap-2">
-                    <span className="hidden rounded-full border border-rose-200 bg-[#fff1f2] px-3 py-1 text-[11px] font-bold text-[#e63946] sm:inline-flex">
-                        {matches.length} match{matches.length > 1 ? 's' : ''}
-                    </span>
-                    <Link
-                        href="/matches"
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-rose-200 bg-white px-3 py-1.5 text-xs font-bold text-[#e63946] transition-all hover:border-[#ff6b4a] hover:bg-[#fff1f2]"
-                    >
-                        Gérer <ArrowRight className="size-3.5" />
-                    </Link>
-                </div>
-            </header>
-
             {/* Zone principale : fit-to-screen, aucune scrollbar */}
             <div className="flex h-[calc(100dvh-53px)] flex-col overflow-hidden px-3 py-3 sm:px-5">
                 {error && (
@@ -368,31 +345,48 @@ function PlayerRow({
                 .join('')
                 .toUpperCase()
 
-    /* Couleur unifiée par position */
+    /* ── 2 couleurs seulement, selon la position (haut/bas) ── */
     const sideColor = side === 'A'
-        ? { bg: 'from-sky-400 to-indigo-500', ring: 'ring-sky-200', text: 'text-sky-700', scoreBg: 'bg-sky-100' }
-        : { bg: 'from-fuchsia-400 to-rose-500', ring: 'ring-rose-200', text: 'text-rose-700', scoreBg: 'bg-rose-100' }
+        ? {
+            avatarBg: 'from-sky-400 to-indigo-500',
+            scoreBg: 'bg-sky-100',
+            scoreText: 'text-sky-700',
+        }
+        : {
+            avatarBg: 'from-fuchsia-400 to-rose-500',
+            scoreBg: 'bg-rose-100',
+            scoreText: 'text-rose-700',
+        }
 
     return (
         <div
-            className={`flex items-center gap-1.5 rounded px-1 py-0.5 ${isWinner ? 'bg-emerald-50' : ''}`}
+            className={`flex items-center gap-1.5 rounded px-1 py-0.5 ${/* Fond uniquement si gagnant, discret */
+                isWinner ? 'bg-slate-50' : ''
+                }`}
         >
+            {/* Avatar : toujours la couleur de sa position */}
             <div
-                className={`flex size-5 shrink-0 items-center justify-center rounded-full bg-gradient-to-br text-[8px] font-black text-white shadow-sm ${isWinner ? 'from-emerald-400 to-emerald-600 ring-1 ring-emerald-300' : `${sideColor.bg}`
+                className={`flex size-5 shrink-0 items-center justify-center rounded-full bg-gradient-to-br text-[8px] font-black text-white shadow-sm ${sideColor.avatarBg} ${isWinner ? 'ring-2 ring-amber-300' : ''
                     }`}
             >
                 {initials}
             </div>
+
+            {/* Nom */}
             <span
-                className={`min-w-0 flex-1 truncate text-[10px] font-bold ${isWinner ? 'text-emerald-700' : 'text-[#0f172a]'
+                className={`min-w-0 flex-1 truncate text-[10px] font-bold ${isWinner ? 'text-[#0f172a]' : 'text-[#64748b]'
                     }`}
                 title={display}
             >
                 {display}
             </span>
+
+            {/* Score : toujours la couleur de sa position */}
             {score != null && (
                 <span
-                    className={`shrink-0 rounded px-1 text-[10px] font-black tabular-nums ${isWinner ? 'bg-emerald-500 text-white' : `${sideColor.scoreBg} ${sideColor.text}`
+                    className={`shrink-0 rounded px-1 text-[10px] font-black tabular-nums ${isWinner
+                        ? `${sideColor.scoreBg} ${sideColor.scoreText} ring-1 ring-amber-300`
+                        : `${sideColor.scoreBg} ${sideColor.scoreText}`
                         }`}
                 >
                     {score.toFixed(0)}

@@ -21,13 +21,13 @@ import {
 
 const navItems = [
     // { label: 'Dashboard', href: '/', icon: LayoutDashboard },
-    { label: 'Dashboard', href: '/bracket', icon: LayoutDashboard },
+    // { label: 'Dashboard', href: '/bracket', icon: LayoutDashboard },
+    { label: 'Tournoi', href: '/tournaments', icon: Trophy },
     { label: 'Candidats', href: '/candidates', icon: Users },
     { label: 'Jurys', href: '/judges', icon: ShieldCheck },
-    { label: 'Tournoi', href: '/tournaments', icon: Trophy },
     { label: 'Matchs', href: '/matches', icon: ClipboardList },
     // { label: 'Rounds', href: '/rounds', icon: List },
-    { label: 'Résultats', href: '/results', icon: ListChecks },
+    // { label: 'Résultats', href: '/results', icon: ListChecks },
 ]
 
 export function Sidebar() {
