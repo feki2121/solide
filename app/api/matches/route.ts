@@ -31,6 +31,7 @@ export async function GET(request: Request) {
     include: {
       candidateA: true,
       candidateB: true,
+      tournament: { select: { id: true, name: true } },
       assignments: {
         include: {
           judge: { include: { user: { select: { id: true, name: true, email: true } } } },

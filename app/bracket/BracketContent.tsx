@@ -294,7 +294,7 @@ function MatchCard({ match, isFinal }: { match: Match; isFinal?: boolean }) {
 
     return (
         <Link
-            href={`/vote/${match.id}`}
+            href={`/vote/${match.id}?tournamentId=${encodeURIComponent(match.tournament.id)}`}
             className={`group relative block shrink-0 overflow-hidden rounded-lg border bg-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${isFinal && isFinished
                 ? 'border-amber-400 shadow-[0_0_0_2px_rgba(251,191,36,0.25)]'
                 : ''

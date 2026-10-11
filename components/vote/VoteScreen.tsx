@@ -8,7 +8,7 @@ import {
     CheckCircle2,
     Loader2,
 } from 'lucide-react'
-
+import { useSearchParams } from 'next/navigation'
 import { CriterionRow } from './CriterionRow'
 import { RoundResultBlock } from './RoundResultBlock'
 import { CandidateSelector } from './CandidateSelector'
@@ -85,6 +85,8 @@ function getInitialScores(round: Round | null | undefined): Record<Criterion, nu
 }
 
 export function VoteScreen({ matchId }: { matchId: string }) {
+    const searchParams = useSearchParams()
+    const tournamentId = searchParams.get('tournamentId')
     const [match, setMatch] = useState<MatchDetail | null>(null)
     const [selectedRoundId, setSelectedRoundId] = useState<string | null>(null)
     const [scores, setScores] = useState<Record<Criterion, number>>({ ...EMPTY_SCORES })
@@ -227,7 +229,11 @@ export function VoteScreen({ matchId }: { matchId: string }) {
                 {/* Barre du haut */}
                 <header className="flex items-center justify-between gap-3">
                     <Link
-                        href="/bracket"
+                        href={
+                            tournamentId
+                                ? `/bracket?tournamentId=${encodeURIComponent(tournamentId)}`
+                                : '/bracket'
+                        }
                         aria-label="Retour"
                         className="flex size-10 items-center justify-center rounded-full border border-rose-100 bg-white text-[#e63946] shadow-2xs transition hover:bg-[#fff1f2] hover:border-rose-200"
                     >
