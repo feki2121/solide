@@ -299,7 +299,7 @@ function MatchCard({ match, isFinal }: { match: Match; isFinal?: boolean }) {
                 {/* VS centré */}
                 <div className="flex items-center justify-center py-0.5">
                     <span className="text-[9px] font-black tracking-widest text-[#94a3b8]">
-                        V
+                        VS
                     </span>
                 </div>
 

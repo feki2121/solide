@@ -17,9 +17,18 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Authentification requise' }, { status: 401 })
   }
 
+  // const where =
+  //   user.role === 'JUDGE' && user.judge
+  //     ? { assignments: { some: { judgeId: user.judge.id } } }
+  //     : tournamentId
+  //       ? { tournamentId }
+  //       : undefined
   const where =
     user.role === 'JUDGE' && user.judge
-      ? { assignments: { some: { judgeId: user.judge.id } } }
+      ? {
+        assignments: { some: { judgeId: user.judge.id } },
+        ...(tournamentId ? { tournamentId } : {}),
+      }
       : tournamentId
         ? { tournamentId }
         : undefined
