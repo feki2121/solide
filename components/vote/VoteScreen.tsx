@@ -227,7 +227,7 @@ export function VoteScreen({ matchId }: { matchId: string }) {
                 {/* Barre du haut */}
                 <header className="flex items-center justify-between gap-3">
                     <Link
-                        href="/"
+                        href="/bracket"
                         aria-label="Retour"
                         className="flex size-10 items-center justify-center rounded-full border border-rose-100 bg-white text-[#e63946] shadow-2xs transition hover:bg-[#fff1f2] hover:border-rose-200"
                     >
@@ -252,9 +252,9 @@ export function VoteScreen({ matchId }: { matchId: string }) {
                     onPickB={() => setAllTo('B')}
                 />
 
-                <p className="text-center text-[11px] text-[#94a3b8]">
+                {/* <p className="text-center text-[11px] text-[#94a3b8]">
                     Tapez un nom pour tout mettre de son côté · glissez les sliders pour ajuster
-                </p>
+                </p> */}
 
                 {/* Sélecteur de rounds */}
                 {match.rounds.length > 0 && (
