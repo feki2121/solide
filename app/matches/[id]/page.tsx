@@ -250,15 +250,29 @@ export default function MatchDetailPage() {
     )
 }
 
-function RoundForm({ matchId, nextNumber, onClose, onCreated }: { matchId: string; nextNumber: number; onClose: () => void; onCreated: () => void }) {
+function RoundForm({
+    matchId,
+    nextNumber,
+    onClose,
+    onCreated,
+}: {
+    matchId: string
+    nextNumber: number
+    onClose: () => void
+    onCreated: () => void
+}) {
     const [number, setNumber] = useState(nextNumber)
-    const [status, setStatus] = useState<'PENDING' | 'OPEN'>('PENDING')
     const [selected, setSelected] = useState<string[]>(criteriaNames)
     const [submitting, setSubmitting] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
+    /* 🎯 Statut fixe : le round est directement ouvert au vote */
+    const status = 'OPEN' as const
+
     function toggle(c: string) {
-        setSelected((prev) => prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c])
+        setSelected((prev) =>
+            prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c]
+        )
     }
 
     async function handleSubmit(e: React.FormEvent) {
@@ -270,8 +284,13 @@ function RoundForm({ matchId, nextNumber, onClose, onCreated }: { matchId: strin
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    matchId, number, status,
-                    criteria: selected.map((name) => ({ name, weight: defaultWeights[name] ?? 0.2 })),
+                    matchId,
+                    number,
+                    status, // toujours 'OPEN'
+                    criteria: selected.map((name) => ({
+                        name,
+                        weight: defaultWeights[name] ?? 0.2,
+                    })),
                 }),
             })
             const body = await res.json().catch(() => ({}))
@@ -285,44 +304,87 @@ function RoundForm({ matchId, nextNumber, onClose, onCreated }: { matchId: strin
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4" onClick={onClose}>
-            <form onSubmit={handleSubmit} onClick={(e) => e.stopPropagation()} className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl border border-rose-100">
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
+            onClick={onClose}
+        >
+            <form
+                onSubmit={handleSubmit}
+                onClick={(e) => e.stopPropagation()}
+                className="w-full max-w-md rounded-2xl border border-rose-100 bg-white p-6 shadow-xl"
+            >
                 <div className="mb-5 flex items-start justify-between">
-                    <h2 className="text-lg font-bold text-[#0f172a]">Nouveau round</h2>
-                    <button type="button" onClick={onClose} className="text-[#94a3b8] hover:text-[#e63946] transition-colors"><X className="size-5" /></button>
+                    <div>
+                        <h2 className="text-lg font-bold text-[#0f172a]">Nouveau round</h2>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="text-[#94a3b8] transition-colors hover:text-[#e63946]"
+                    >
+                        <X className="size-5" />
+                    </button>
                 </div>
 
-                <div className="mb-4 grid grid-cols-2 gap-3">
-                    <label className="block">
-                        <span className="text-xs font-bold text-[#0f172a]">Numéro</span>
-                        <input type="number" min={1} value={number} onChange={(e) => setNumber(Number(e.target.value))} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:border-[#e63946] focus:ring-2 focus:ring-[#e63946]/20 transition-all" />
-                    </label>
-                    <label className="block">
-                        <span className="text-xs font-bold text-[#0f172a]">Statut initial</span>
-                        <select value={status} onChange={(e) => setStatus(e.target.value as any)} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:border-[#e63946] focus:ring-2 focus:ring-[#e63946]/20 transition-all">
-                            <option value="PENDING">En attente</option>
-                            <option value="OPEN">Ouvert</option>
-                        </select>
-                    </label>
-                </div>
+                {/* Numéro du round */}
+                <label className="mb-4 block">
+                    <span className="text-xs font-bold text-[#0f172a]">
+                        Numéro du round
+                    </span>
+                    <input
+                        type="number"
+                        min={1}
+                        value={number}
+                        onChange={(e) => setNumber(Number(e.target.value))}
+                        className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none transition-all focus:border-[#e63946] focus:ring-2 focus:ring-[#e63946]/20"
+                    />
+                </label>
 
+                {/* Critères */}
                 <div className="mb-4">
-                    <span className="text-xs font-bold text-[#0f172a]">Critères</span>
+                    <span className="text-xs font-bold text-[#0f172a]">
+                        Critères <span className="text-[#e63946]">*</span>
+                    </span>
                     <div className="mt-2 flex flex-wrap gap-2">
                         {criteriaNames.map((c) => (
-                            <button key={c} type="button" onClick={() => toggle(c)} className={`rounded-full border px-3 py-1.5 text-xs font-bold capitalize transition-all ${selected.includes(c) ? 'border-[#e63946] bg-[#fff1f2] text-[#e63946]' : 'border-slate-200 bg-white text-[#64748b] hover:bg-slate-50'}`}>
+                            <button
+                                key={c}
+                                type="button"
+                                onClick={() => toggle(c)}
+                                className={`rounded-full border px-3 py-1.5 text-xs font-bold capitalize transition-all ${selected.includes(c)
+                                    ? 'border-[#e63946] bg-[#fff1f2] text-[#e63946]'
+                                    : 'border-slate-200 bg-white text-[#64748b] hover:bg-slate-50'
+                                    }`}
+                            >
                                 {c}
                             </button>
                         ))}
                     </div>
+                    {/* <p className="mt-2 text-[11px] text-[#94a3b8]">
+                        {selected.length} critère(s) sélectionné(s) · poids égal par défaut
+                    </p> */}
                 </div>
 
-                {error && <p className="mb-4 text-xs font-semibold text-[#dc2626]">{error}</p>}
+                {error && (
+                    <p className="mb-4 rounded-xl border border-rose-200 bg-[#fff1f2] px-3 py-2 text-xs font-semibold text-[#dc2626]">
+                        {error}
+                    </p>
+                )}
 
                 <div className="mt-3 flex justify-end gap-2.5">
-                    <button type="button" onClick={onClose} className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-[#64748b] hover:bg-slate-50 transition-colors">Annuler</button>
-                    <button type="submit" disabled={submitting || selected.length === 0} className="rounded-xl bg-gradient-to-r from-[#FF6B4A] to-[#E63946] px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-red-500/20 hover:opacity-95 disabled:opacity-50 transition-all">
-                        {submitting ? 'Création…' : 'Créer'}
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-[#64748b] transition-colors hover:bg-slate-50"
+                    >
+                        Annuler
+                    </button>
+                    <button
+                        type="submit"
+                        disabled={submitting || selected.length === 0}
+                        className="rounded-xl bg-gradient-to-r from-[#FF6B4A] to-[#E63946] px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-rose-500/20 transition-all hover:opacity-95 disabled:opacity-50"
+                    >
+                        {submitting ? 'Création…' : 'Créer le round'}
                     </button>
                 </div>
             </form>

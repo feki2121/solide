@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { CheckCircle2, Lock, Plus, Swords, Trash2, X } from 'lucide-react'
 import Link from 'next/link'
 import { AdminLayout } from '@/components/ui/admin/Layout'
@@ -273,18 +273,28 @@ export default function MatchesPage() {
     )
 }
 
-function MatchForm({ tournaments, candidates, judges, onClose, onCreated }: {
-    tournaments: Tournament[]; candidates: Candidate[]; judges: Judge[]
-    onClose: () => void; onCreated: (m: Match) => void
+function MatchForm({
+    tournaments,
+    candidates,
+    judges,
+    onClose,
+    onCreated,
+}: {
+    tournaments: Tournament[]
+    candidates: Candidate[]
+    judges: Judge[]
+    onClose: () => void
+    onCreated: (m: Match) => void
 }) {
     const [tournamentId, setTournamentId] = useState(tournaments[0]?.id ?? '')
-    const [name, setName] = useState('')
     const [stage, setStage] = useState<'QUALIFICATION' | 'QUARTER_FINAL' | 'SEMI_FINAL' | 'FINAL'>('QUARTER_FINAL')
     const [candidateAId, setCandidateAId] = useState('')
     const [candidateBId, setCandidateBId] = useState('')
-    const [judgeIds, setJudgeIds] = useState<string[]>([])
     const [submitting, setSubmitting] = useState(false)
     const [error, setError] = useState<string | null>(null)
+
+    /* 🎯 Le nom du match = label du stage (ex: "Finale", "Quart de finale", etc.) */
+    const matchName = stageLabels[stage] ?? stage
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault()
@@ -295,10 +305,12 @@ function MatchForm({ tournaments, candidates, judges, onClose, onCreated }: {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    tournamentId, name: name.trim(), stage,
+                    tournamentId,
+                    name: matchName,                       // ⬅️ Nom auto-généré
+                    stage,
                     candidateAId: candidateAId || undefined,
                     candidateBId: candidateBId || undefined,
-                    judgeIds,
+                    judgeIds: judges.map((j) => j.id),     // ⬅️ TOUS les juges par défaut
                 }),
             })
             const body = await res.json().catch(() => ({}))
@@ -311,33 +323,61 @@ function MatchForm({ tournaments, candidates, judges, onClose, onCreated }: {
         }
     }
 
-    function toggleJudge(id: string) {
-        setJudgeIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id])
-    }
-
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4" onClick={onClose}>
-            <form onSubmit={handleSubmit} onClick={(e) => e.stopPropagation()} className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-6 shadow-xl border border-rose-100">
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
+            onClick={onClose}
+        >
+            <form
+                onSubmit={handleSubmit}
+                onClick={(e) => e.stopPropagation()}
+                className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-rose-100 bg-white p-6 shadow-xl"
+            >
                 <div className="mb-5 flex items-start justify-between">
-                    <h2 className="text-lg font-bold text-[#0f172a]">Nouveau match</h2>
-                    <button type="button" onClick={onClose} className="text-[#94a3b8] hover:text-[#e63946] transition-colors"><X className="size-5" /></button>
+                    <div>
+                        <h2 className="text-lg font-bold text-[#0f172a]">Nouveau match</h2>
+                        {/* <p className="mt-0.5 text-xs text-[#64748b]">
+                            Le nom sera automatiquement : <span className="font-bold text-[#e63946]">{matchName}</span>
+                        </p> */}
+                    </div>
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="text-[#94a3b8] transition-colors hover:text-[#e63946]"
+                    >
+                        <X className="size-5" />
+                    </button>
                 </div>
 
+                {/* Tournoi */}
                 <label className="mb-4 block">
-                    <span className="text-xs font-bold text-[#0f172a]">Tournoi <span className="text-[#e63946]">*</span></span>
-                    <select required value={tournamentId} onChange={(e) => setTournamentId(e.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:border-[#e63946] focus:ring-2 focus:ring-[#e63946]/20 transition-all">
-                        {tournaments.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+                    <span className="text-xs font-bold text-[#0f172a]">
+                        Tournoi <span className="text-[#e63946]">*</span>
+                    </span>
+                    <select
+                        required
+                        value={tournamentId}
+                        onChange={(e) => setTournamentId(e.target.value)}
+                        className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none transition-all focus:border-[#e63946] focus:ring-2 focus:ring-[#e63946]/20"
+                    >
+                        {tournaments.map((t) => (
+                            <option key={t.id} value={t.id}>
+                                {t.name}
+                            </option>
+                        ))}
                     </select>
                 </label>
 
+                {/* Stage (détermine le nom) */}
                 <label className="mb-4 block">
-                    <span className="text-xs font-bold text-[#0f172a]">Nom du match <span className="text-[#e63946]">*</span></span>
-                    <input required value={name} onChange={(e) => setName(e.target.value)} placeholder="Quarter Final #1" className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:border-[#e63946] focus:ring-2 focus:ring-[#e63946]/20 transition-all" />
-                </label>
-
-                <label className="mb-4 block">
-                    <span className="text-xs font-bold text-[#0f172a]">Stage <span className="text-[#e63946]">*</span></span>
-                    <select value={stage} onChange={(e) => setStage(e.target.value as any)} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:border-[#e63946] focus:ring-2 focus:ring-[#e63946]/20 transition-all">
+                    <span className="text-xs font-bold text-[#0f172a]">
+                        Stage <span className="text-[#e63946]">*</span>
+                    </span>
+                    <select
+                        value={stage}
+                        onChange={(e) => setStage(e.target.value as typeof stage)}
+                        className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none transition-all focus:border-[#e63946] focus:ring-2 focus:ring-[#e63946]/20"
+                    >
                         <option value="QUALIFICATION">Qualification</option>
                         <option value="QUARTER_FINAL">Quart de finale</option>
                         <option value="SEMI_FINAL">Demi-finale</option>
@@ -345,53 +385,139 @@ function MatchForm({ tournaments, candidates, judges, onClose, onCreated }: {
                     </select>
                 </label>
 
-                <div className="mb-4 grid grid-cols-2 gap-3">
-                    <label className="block">
-                        <span className="text-xs font-bold text-[#0f172a]">Candidat A</span>
-                        <select value={candidateAId} onChange={(e) => setCandidateAId(e.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:border-[#e63946] focus:ring-2 focus:ring-[#e63946]/20 transition-all">
-                            <option value="">— Sélectionner —</option>
-                            {candidates.filter((c) => c.id !== candidateBId).map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-                        </select>
-                    </label>
-                    <label className="block">
-                        <span className="text-xs font-bold text-[#0f172a]">Candidat B</span>
-                        <select value={candidateBId} onChange={(e) => setCandidateBId(e.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:border-[#e63946] focus:ring-2 focus:ring-[#e63946]/20 transition-all">
-                            <option value="">— Sélectionner —</option>
-                            {candidates.filter((c) => c.id !== candidateAId).map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-                        </select>
-                    </label>
+                {/* Candidats avec recherche */}
+                <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <CandidatePicker
+                        label="Candidat A"
+                        value={candidateAId}
+                        onChange={setCandidateAId}
+                        candidates={candidates}
+                        excludeId={candidateBId}
+                    />
+                    <CandidatePicker
+                        label="Candidat B"
+                        value={candidateBId}
+                        onChange={setCandidateBId}
+                        candidates={candidates}
+                        excludeId={candidateAId}
+                    />
                 </div>
-
-                <div className="mb-4">
-                    <span className="text-xs font-bold text-[#0f172a]">Juges assignés</span>
-                    <div className="mt-2 flex flex-wrap gap-2">
-                        {judges.length === 0 ? (
-                            <p className="text-xs text-[#94a3b8]">Aucun juge disponible.</p>
-                        ) : judges.map((j) => (
-                            <button
-                                key={j.id}
-                                type="button"
-                                onClick={() => toggleJudge(j.id)}
-                                className={`rounded-full border px-3 py-1.5 text-xs font-bold transition-all ${judgeIds.includes(j.id)
-                                    ? 'border-[#e63946] bg-[#fff1f2] text-[#e63946]'
-                                    : 'border-slate-200 bg-white text-[#64748b] hover:bg-slate-50'
-                                    }`}
-                            >
-                                {j.user.name}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-
-                {error && <p className="mb-4 text-xs font-semibold text-[#dc2626]">{error}</p>}
+                {error && (
+                    <p className="mb-4 rounded-xl border border-rose-200 bg-[#fff1f2] px-3 py-2 text-xs font-semibold text-[#dc2626]">
+                        {error}
+                    </p>
+                )}
 
                 <div className="mt-3 flex justify-end gap-2.5">
-                    <button type="button" onClick={onClose} className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-[#64748b] hover:bg-slate-50 transition-colors">Annuler</button>
-                    <button type="submit" disabled={submitting || !name.trim()} className="rounded-xl bg-gradient-to-r from-[#FF6B4A] to-[#E63946] px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-red-500/20 hover:opacity-95 disabled:opacity-50 transition-all">
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-[#64748b] transition-colors hover:bg-slate-50"
+                    >
+                        Annuler
+                    </button>
+                    <button
+                        type="submit"
+                        disabled={submitting || !tournamentId}
+                        className="rounded-xl bg-gradient-to-r from-[#FF6B4A] to-[#E63946] px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-red-500/20 transition-all hover:opacity-95 disabled:opacity-50"
+                    >
                         {submitting ? 'Création…' : 'Créer'}
                     </button>
                 </div>
             </form>
+        </div>
+    )
+}
+
+function CandidatePicker({
+    label,
+    value,
+    onChange,
+    candidates,
+    excludeId,
+}: {
+    label: string
+    value: string
+    onChange: (id: string) => void
+    candidates: Candidate[]
+    excludeId?: string
+}) {
+    const [query, setQuery] = useState('')
+    const [open, setOpen] = useState(false)
+    const containerRef = useRef<HTMLDivElement>(null)
+
+    /* Ferme le dropdown quand on clique en dehors */
+    useEffect(() => {
+        function handleClick(e: MouseEvent) {
+            if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+                setOpen(false)
+            }
+        }
+        document.addEventListener('mousedown', handleClick)
+        return () => document.removeEventListener('mousedown', handleClick)
+    }, [])
+
+    /* Candidat sélectionné */
+    const selected = candidates.find((c) => c.id === value)
+
+    /* Filtre les candidats selon la recherche + exclusion */
+    const filtered = candidates
+        .filter((c) => c.id !== excludeId)
+        .filter((c) => c.name.toLowerCase().includes(query.toLowerCase().trim()))
+
+    return (
+        <div ref={containerRef} className="relative">
+            <span className="text-xs font-bold text-[#0f172a]">{label}</span>
+
+            {/* Input avec recherche */}
+            <input
+                type="text"
+                value={open ? query : selected?.name ?? ''}
+                onChange={(e) => {
+                    setQuery(e.target.value)
+                    setOpen(true)
+                    /* Si on efface, désélectionne */
+                    if (!e.target.value) onChange('')
+                }}
+                onFocus={() => {
+                    setOpen(true)
+                    setQuery('')
+                }}
+                placeholder="Rechercher un candidat…"
+                className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none transition-all focus:border-[#e63946] focus:ring-2 focus:ring-[#e63946]/20"
+            />
+
+            {/* Dropdown */}
+            {open && (
+                <div className="absolute z-10 mt-1 max-h-52 w-full overflow-y-auto rounded-xl border border-rose-100 bg-white shadow-lg">
+                    {filtered.length === 0 ? (
+                        <p className="px-3.5 py-3 text-xs text-[#94a3b8]">
+                            Aucun candidat trouvé.
+                        </p>
+                    ) : (
+                        filtered.map((c) => (
+                            <button
+                                key={c.id}
+                                type="button"
+                                onClick={() => {
+                                    onChange(c.id)
+                                    setOpen(false)
+                                    setQuery('')
+                                }}
+                                className={`flex w-full items-center justify-between gap-2 px-3.5 py-2.5 text-left text-sm transition-colors hover:bg-[#fff1f2] ${c.id === value ? 'bg-[#fff1f2] font-bold text-[#e63946]' : 'text-[#0f172a]'
+                                    }`}
+                            >
+                                <span className="truncate">{c.name}</span>
+                                {c.seed != null && (
+                                    <span className="shrink-0 rounded bg-rose-100 px-1.5 py-0.5 text-[10px] font-bold text-rose-700">
+                                        #{c.seed}
+                                    </span>
+                                )}
+                            </button>
+                        ))
+                    )}
+                </div>
+            )}
         </div>
     )
 }
