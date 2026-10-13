@@ -75,6 +75,51 @@ export function calculateScores(
   }
 }
 
+/**
+ * Calcule le résultat d'un round par **vote majoritaire** des juges.
+ * Chaque juge vote globalement pour A ou B selon son vote moyen.
+ * Le candidat avec le plus de votes de juges gagne le round.
+ */
+export function calculateRoundResultByVotes(
+  votes: { judgeId: string; value: number }[],
+  candidateAId: string,
+  candidateBId: string,
+): Score {
+  if (votes.length === 0) {
+    throw new Error('NO_VOTES')
+  }
+
+  // Regroupe les votes par juge
+  const byJudge = new Map<string, number[]>()
+  for (const v of votes) {
+    byJudge.set(v.judgeId, [...(byJudge.get(v.judgeId) ?? []), v.value])
+  }
+
+  // Chaque juge vote pour A ou B selon la moyenne de ses votes
+  let votesForA = 0
+  let votesForB = 0
+
+  for (const values of byJudge.values()) {
+    if (values.length === 0) continue
+    const avg = values.reduce((s, v) => s + v, 0) / values.length
+    if (avg < 50) votesForA++
+    else if (avg > 50) votesForB++
+    // avg === 50 → neutre, ne compte pas
+  }
+
+  // Détermine le vainqueur
+  let winnerId: string | null = null
+  if (votesForA > votesForB) winnerId = candidateAId
+  else if (votesForB > votesForA) winnerId = candidateBId
+  // égalité parfaite → winnerId = null
+
+  return {
+    candidateAScore: votesForA,
+    candidateBScore: votesForB,
+    winnerId,
+  }
+}
+
 // ───────────── Résultat d'un round ─────────────
 
 /**
@@ -135,6 +180,10 @@ export async function calculateRoundResult(roundId: string) {
  * - Ignore les rounds sans résultat.
  * - Échoue uniquement s'il n'y a AUCUN round avec résultat.
  */
+/**
+ * Calcule le résultat final d'un match.
+ * Le score = nombre de rounds gagnés par chaque candidat.
+ */
 export async function calculateMatchResult(matchId: string) {
   const match = await prisma.match.findUnique({
     where: { id: matchId },
@@ -151,24 +200,30 @@ export async function calculateMatchResult(matchId: string) {
     throw new Error('NO_ROUND_RESULT')
   }
 
-  const candidateAScore =
-    roundsWithResult.reduce((s, r) => s + Number(r.result!.candidateAScore), 0) /
-    roundsWithResult.length
-  const candidateBScore =
-    roundsWithResult.reduce((s, r) => s + Number(r.result!.candidateBScore), 0) /
-    roundsWithResult.length
+  // Compte les victoires de rounds
+  const winsA = roundsWithResult.filter(
+    (r) => r.result!.winnerId === match.candidateAId
+  ).length
+  const winsB = roundsWithResult.filter(
+    (r) => r.result!.winnerId === match.candidateBId
+  ).length
 
-  // Égalité : on force le candidat A comme vainqueur (MatchResult.winnerId est obligatoire)
+  // Le candidat avec le plus de victoires remporte le match
   const winnerId =
-    candidateAScore >= candidateBScore ? match.candidateAId : match.candidateBId
+    winsA >= winsB ? match.candidateAId : match.candidateBId
 
   return prisma.$transaction(async (tx) => {
     const result = await tx.matchResult.upsert({
       where: { matchId },
-      create: { matchId, candidateAScore, candidateBScore, winnerId },
+      create: {
+        matchId,
+        candidateAScore: winsA,
+        candidateBScore: winsB,
+        winnerId,
+      },
       update: {
-        candidateAScore,
-        candidateBScore,
+        candidateAScore: winsA,
+        candidateBScore: winsB,
         winnerId,
         calculatedAt: new Date(),
       },

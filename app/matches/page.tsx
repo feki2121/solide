@@ -1,9 +1,10 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { CheckCircle2, Lock, Plus, Swords, Trash2, X } from 'lucide-react'
 import Link from 'next/link'
 import { AdminLayout } from '@/components/ui/admin/Layout'
+import { useRouter } from 'next/navigation'
 
 type Candidate = { id: string; name: string; country: string | null; seed: number | null }
 type Judge = { id: string; user: { id: string; name: string; email: string } }
@@ -33,7 +34,16 @@ const stageLabels: Record<string, string> = {
     FINAL: 'Finale',
 }
 
+/** Nombre de matchs (paires) générés selon le stage. */
+const STAGE_PAIRS_COUNT: Record<string, number> = {
+    QUALIFICATION: 1,
+    QUARTER_FINAL: 4,
+    SEMI_FINAL: 2,
+    FINAL: 1,
+}
+
 export default function MatchesPage() {
+    const router = useRouter()
     const [matches, setMatches] = useState<Match[]>([])
     const [tournaments, setTournaments] = useState<Tournament[]>([])
     const [candidates, setCandidates] = useState<Candidate[]>([])
@@ -116,7 +126,8 @@ export default function MatchesPage() {
                         </div>
                         <button
                             onClick={() => setShowForm(true)}
-                            disabled={candidates.length < 2 || tournaments.length === 0}
+                            disabled={tournaments.length === 0}
+                            title={tournaments.length === 0 ? 'Créez d\'abord un tournoi' : undefined}
                             className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#FF6B4A] to-[#E63946] px-5 py-3 text-sm font-bold text-white shadow-md shadow-red-500/20 hover:opacity-95 disabled:opacity-50 transition-all active:scale-[0.99]"
                         >
                             <Plus className="size-4" /> Nouveau match
@@ -132,13 +143,11 @@ export default function MatchesPage() {
                     {showForm && (
                         <MatchForm
                             tournaments={tournaments}
-                            candidates={candidates}
                             judges={judges}
                             onClose={() => setShowForm(false)}
-                            onCreated={(m) => {
-                                setMatches((prev) => [...prev, m])
+                            onCreated={(count, tournamentId) => {
                                 setShowForm(false)
-                                setMessage({ type: 'success', text: `« ${m.name} » créé.` })
+                                router.push(`/bracket?tournamentId=${tournamentId}`)
                             }}
                         />
                     )}
@@ -149,7 +158,9 @@ export default function MatchesPage() {
                         <section className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-rose-200 bg-white p-12 text-center">
                             <Swords className="size-9 text-[#ff6b4a]" />
                             <p className="text-sm font-bold text-[#0f172a]">Aucun match</p>
-                            <p className="text-xs text-[#64748b]">Créez un match à partir de deux candidats.</p>
+                            <p className="text-xs text-[#64748b]">
+                                Créez un stage pour générer les matchs aléatoirement.
+                            </p>
                         </section>
                     ) : (
                         <section className="overflow-hidden rounded-2xl border border-rose-100 bg-white shadow-2xs">
@@ -275,47 +286,77 @@ export default function MatchesPage() {
 
 function MatchForm({
     tournaments,
-    candidates,
     judges,
     onClose,
     onCreated,
 }: {
     tournaments: Tournament[]
-    candidates: Candidate[]
     judges: Judge[]
     onClose: () => void
-    onCreated: (m: Match) => void
+    onCreated: (count: number, tournamentId: string) => void   // ✅
 }) {
     const [tournamentId, setTournamentId] = useState(tournaments[0]?.id ?? '')
     const [stage, setStage] = useState<'QUALIFICATION' | 'QUARTER_FINAL' | 'SEMI_FINAL' | 'FINAL'>('QUARTER_FINAL')
-    const [candidateAId, setCandidateAId] = useState('')
-    const [candidateBId, setCandidateBId] = useState('')
+    const [roundsCount, setRoundsCount] = useState(3)
     const [submitting, setSubmitting] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
-    /* 🎯 Le nom du match = label du stage (ex: "Finale", "Quart de finale", etc.) */
-    const matchName = stageLabels[stage] ?? stage
+    // Nombre de matchs / candidats selon le stage
+    const pairsCount = STAGE_PAIRS_COUNT[stage] ?? 1
+    const candidatesCount = pairsCount * 2
+
+    // Un tableau de noms vide
+    const [names, setNames] = useState<string[]>(
+        Array.from({ length: candidatesCount }, () => '')
+    )
+
+    // Reset quand le stage change
+    useEffect(() => {
+        setNames(Array.from({ length: candidatesCount }, () => ''))
+    }, [stage, candidatesCount])
+
+    function updateName(index: number, value: string) {
+        setNames((prev) => prev.map((n, i) => (i === index ? value : n)))
+    }
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault()
         setSubmitting(true)
         setError(null)
+
+        // Validation : tous les noms doivent être remplis
+        const trimmed = names.map((n) => n.trim())
+        for (let i = 0; i < trimmed.length; i++) {
+            if (!trimmed[i]) {
+                setError(`Candidat ${i + 1} : nom manquant.`)
+                setSubmitting(false)
+                return
+            }
+        }
+
+        // Vérifie les doublons
+        const unique = new Set(trimmed.map((n) => n.toLowerCase()))
+        if (unique.size !== trimmed.length) {
+            setError('Les noms des candidats doivent être uniques.')
+            setSubmitting(false)
+            return
+        }
+
         try {
-            const res = await fetch('/api/matches', {
+            const res = await fetch('/api/matches/bulk', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     tournamentId,
-                    name: matchName,                       // ⬅️ Nom auto-généré
                     stage,
-                    candidateAId: candidateAId || undefined,
-                    candidateBId: candidateBId || undefined,
-                    judgeIds: judges.map((j) => j.id),     // ⬅️ TOUS les juges par défaut
+                    roundsCount,
+                    candidateNames: trimmed,
+                    judgeIds: judges.map((j) => j.id),
                 }),
             })
             const body = await res.json().catch(() => ({}))
             if (!res.ok) throw new Error(body.error || 'Création impossible.')
-            onCreated(body as Match)
+            onCreated(body.created ?? pairsCount, tournamentId)
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Erreur.')
         } finally {
@@ -324,200 +365,110 @@ function MatchForm({
     }
 
     return (
-        <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
-            onClick={onClose}
-        >
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm" onClick={onClose}>
             <form
                 onSubmit={handleSubmit}
                 onClick={(e) => e.stopPropagation()}
-                className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-rose-100 bg-white p-6 shadow-xl"
+                className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-rose-100 bg-white p-6 shadow-xl"
             >
                 <div className="mb-5 flex items-start justify-between">
-                    <div>
-                        <h2 className="text-lg font-bold text-[#0f172a]">Nouveau match</h2>
-                        {/* <p className="mt-0.5 text-xs text-[#64748b]">
-                            Le nom sera automatiquement : <span className="font-bold text-[#e63946]">{matchName}</span>
-                        </p> */}
-                    </div>
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        className="text-[#94a3b8] transition-colors hover:text-[#e63946]"
-                    >
+                    <h2 className="text-lg font-bold text-[#0f172a]">Nouveau match</h2>
+                    <button type="button" onClick={onClose} className="text-[#94a3b8] hover:text-[#e63946]">
                         <X className="size-5" />
                     </button>
                 </div>
 
                 {/* Tournoi */}
                 <label className="mb-4 block">
-                    <span className="text-xs font-bold text-[#0f172a]">
-                        Tournoi <span className="text-[#e63946]">*</span>
-                    </span>
+                    <span className="text-xs font-bold text-[#0f172a]">Tournoi <span className="text-[#e63946]">*</span></span>
                     <select
                         required
                         value={tournamentId}
                         onChange={(e) => setTournamentId(e.target.value)}
-                        className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none transition-all focus:border-[#e63946] focus:ring-2 focus:ring-[#e63946]/20"
+                        className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:border-[#e63946]"
                     >
                         {tournaments.map((t) => (
-                            <option key={t.id} value={t.id}>
-                                {t.name}
-                            </option>
+                            <option key={t.id} value={t.id}>{t.name}</option>
                         ))}
                     </select>
                 </label>
 
-                {/* Stage (détermine le nom) */}
-                <label className="mb-4 block">
-                    <span className="text-xs font-bold text-[#0f172a]">
-                        Stage <span className="text-[#e63946]">*</span>
-                    </span>
-                    <select
-                        value={stage}
-                        onChange={(e) => setStage(e.target.value as typeof stage)}
-                        className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none transition-all focus:border-[#e63946] focus:ring-2 focus:ring-[#e63946]/20"
-                    >
-                        <option value="QUALIFICATION">Qualification</option>
-                        <option value="QUARTER_FINAL">Quart de finale</option>
-                        <option value="SEMI_FINAL">Demi-finale</option>
-                        <option value="FINAL">Finale</option>
-                    </select>
-                </label>
-
-                {/* Candidats avec recherche */}
+                {/* Stage + Rounds */}
                 <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    <CandidatePicker
-                        label="Candidat A"
-                        value={candidateAId}
-                        onChange={setCandidateAId}
-                        candidates={candidates}
-                        excludeId={candidateBId}
-                    />
-                    <CandidatePicker
-                        label="Candidat B"
-                        value={candidateBId}
-                        onChange={setCandidateBId}
-                        candidates={candidates}
-                        excludeId={candidateAId}
-                    />
+                    <label className="block">
+                        <span className="text-xs font-bold text-[#0f172a]">Stage <span className="text-[#e63946]">*</span></span>
+                        <select
+                            value={stage}
+                            onChange={(e) => setStage(e.target.value as typeof stage)}
+                            className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:border-[#e63946]"
+                        >
+                            <option value="QUALIFICATION">Qualification</option>
+                            <option value="QUARTER_FINAL">Quart de finale</option>
+                            <option value="SEMI_FINAL">Demi-finale</option>
+                            <option value="FINAL">Finale</option>
+                        </select>
+                    </label>
+
+                    <label className="block">
+                        <span className="text-xs font-bold text-[#0f172a]">Nombre de rounds <span className="text-[#e63946]">*</span></span>
+                        <input
+                            type="number"
+                            min={1}
+                            max={10}
+                            value={roundsCount}
+                            onChange={(e) => setRoundsCount(Number(e.target.value))}
+                            className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:border-[#e63946]"
+                        />
+                        <span className="mt-1 block text-[10px] text-[#94a3b8]">
+                            Chaque match aura {roundsCount} round(s)
+                        </span>
+                    </label>
                 </div>
+
+                {/* Grille de noms */}
+                <div className="mb-4 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+                    {names.map((name, i) => (
+                        <div
+                            key={i}
+                            className="flex items-center gap-2 rounded-xl border border-rose-100 bg-[#fff1f2]/30 px-3 py-2"
+                        >
+                            <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-white text-[11px] font-black text-[#e63946] border border-rose-200">
+                                {i + 1}
+                            </span>
+                            <input
+                                type="text"
+                                placeholder="Nom du candidat…"
+                                value={name}
+                                onChange={(e) => updateName(i, e.target.value)}
+                                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-[#e63946]"
+                            />
+                        </div>
+                    ))}
+                </div>
+
                 {error && (
                     <p className="mb-4 rounded-xl border border-rose-200 bg-[#fff1f2] px-3 py-2 text-xs font-semibold text-[#dc2626]">
                         {error}
                     </p>
                 )}
 
-                <div className="mt-3 flex justify-end gap-2.5">
+                <div className="flex justify-end gap-2.5">
                     <button
                         type="button"
                         onClick={onClose}
-                        className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-[#64748b] transition-colors hover:bg-slate-50"
+                        className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-[#64748b] hover:bg-slate-50"
                     >
                         Annuler
                     </button>
                     <button
                         type="submit"
-                        disabled={submitting || !tournamentId}
-                        className="rounded-xl bg-gradient-to-r from-[#FF6B4A] to-[#E63946] px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-red-500/20 transition-all hover:opacity-95 disabled:opacity-50"
+                        disabled={submitting}
+                        className="rounded-xl bg-gradient-to-r from-[#FF6B4A] to-[#E63946] px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-red-500/20 hover:opacity-95 disabled:opacity-50"
                     >
-                        {submitting ? 'Création…' : 'Créer'}
+                        {submitting ? 'Création…' : `Créer ${pairsCount} match(s)`}
                     </button>
                 </div>
             </form>
-        </div>
-    )
-}
-
-function CandidatePicker({
-    label,
-    value,
-    onChange,
-    candidates,
-    excludeId,
-}: {
-    label: string
-    value: string
-    onChange: (id: string) => void
-    candidates: Candidate[]
-    excludeId?: string
-}) {
-    const [query, setQuery] = useState('')
-    const [open, setOpen] = useState(false)
-    const containerRef = useRef<HTMLDivElement>(null)
-
-    /* Ferme le dropdown quand on clique en dehors */
-    useEffect(() => {
-        function handleClick(e: MouseEvent) {
-            if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-                setOpen(false)
-            }
-        }
-        document.addEventListener('mousedown', handleClick)
-        return () => document.removeEventListener('mousedown', handleClick)
-    }, [])
-
-    /* Candidat sélectionné */
-    const selected = candidates.find((c) => c.id === value)
-
-    /* Filtre les candidats selon la recherche + exclusion */
-    const filtered = candidates
-        .filter((c) => c.id !== excludeId)
-        .filter((c) => c.name.toLowerCase().includes(query.toLowerCase().trim()))
-
-    return (
-        <div ref={containerRef} className="relative">
-            <span className="text-xs font-bold text-[#0f172a]">{label}</span>
-
-            {/* Input avec recherche */}
-            <input
-                type="text"
-                value={open ? query : selected?.name ?? ''}
-                onChange={(e) => {
-                    setQuery(e.target.value)
-                    setOpen(true)
-                    /* Si on efface, désélectionne */
-                    if (!e.target.value) onChange('')
-                }}
-                onFocus={() => {
-                    setOpen(true)
-                    setQuery('')
-                }}
-                placeholder="Rechercher un candidat…"
-                className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none transition-all focus:border-[#e63946] focus:ring-2 focus:ring-[#e63946]/20"
-            />
-
-            {/* Dropdown */}
-            {open && (
-                <div className="absolute z-10 mt-1 max-h-52 w-full overflow-y-auto rounded-xl border border-rose-100 bg-white shadow-lg">
-                    {filtered.length === 0 ? (
-                        <p className="px-3.5 py-3 text-xs text-[#94a3b8]">
-                            Aucun candidat trouvé.
-                        </p>
-                    ) : (
-                        filtered.map((c) => (
-                            <button
-                                key={c.id}
-                                type="button"
-                                onClick={() => {
-                                    onChange(c.id)
-                                    setOpen(false)
-                                    setQuery('')
-                                }}
-                                className={`flex w-full items-center justify-between gap-2 px-3.5 py-2.5 text-left text-sm transition-colors hover:bg-[#fff1f2] ${c.id === value ? 'bg-[#fff1f2] font-bold text-[#e63946]' : 'text-[#0f172a]'
-                                    }`}
-                            >
-                                <span className="truncate">{c.name}</span>
-                                {c.seed != null && (
-                                    <span className="shrink-0 rounded bg-rose-100 px-1.5 py-0.5 text-[10px] font-bold text-rose-700">
-                                        #{c.seed}
-                                    </span>
-                                )}
-                            </button>
-                        ))
-                    )}
-                </div>
-            )}
         </div>
     )
 }

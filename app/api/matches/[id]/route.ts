@@ -6,10 +6,14 @@ export async function GET(
     request: Request,
     { params }: { params: Promise<{ id: string }> },
 ) {
-    // 1. Récupère l'utilisateur connecté
     const user = await currentUser(request as any)
-
     const { id } = await params
+
+    if (!user) {
+        return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+    }
+
+    const isAdmin = user.role === 'ADMIN'
 
     const match = await prisma.match.findUnique({
         where: { id },
@@ -30,8 +34,8 @@ export async function GET(
                 include: {
                     criteria: true,
                     result: true,
-                    // 2. Ne renvoie QUE les votes du juge connecté
-                    votes: user ? { where: { judgeId: user.id } } : false,
+                    // 👇 ADMIN → tous les votes, JUDGE → seulement les siens
+                    votes: isAdmin ? true : { where: { judgeId: user.id } },
                 },
                 orderBy: { number: 'asc' },
             },

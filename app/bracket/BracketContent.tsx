@@ -5,9 +5,9 @@ import { useCallback, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowRight, Trophy, Users } from 'lucide-react'
-
 import { AdminLayout } from '@/components/ui/admin/Layout'
 
+type UserRole = 'ADMIN' | 'JUDGE' | null
 type Candidate = { id: string; name: string; country: string | null; seed: number | null }
 type Round = {
     id: string
@@ -52,6 +52,14 @@ const stageConfig: Record<
     FINAL: { label: 'Finale', short: 'F', accent: 'from-amber-500 to-orange-500' },
 }
 
+/** Nombre de matchs par défaut selon le stage (format standard). */
+const STAGE_CAPACITY: Record<Match['stage'], number> = {
+    QUALIFICATION: 1,     // flexible, on garde ce qui existe
+    QUARTER_FINAL: 4,
+    SEMI_FINAL: 2,
+    FINAL: 1,
+}
+
 export default function BracketContent() {
     const searchParams = useSearchParams()
     const tournamentId = searchParams.get('tournamentId')
@@ -60,6 +68,14 @@ export default function BracketContent() {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
 
+    const [role, setRole] = useState<UserRole>(null)
+
+    useEffect(() => {
+        fetch('/api/auth/me', { cache: 'no-store' })
+            .then((res) => (res.ok ? res.json() : null))
+            .then((user) => setRole(user?.role ?? null))
+            .catch(() => setRole(null))
+    }, [])
     const load = useCallback(async () => {
         setLoading(true)
         setError(null)
@@ -89,15 +105,16 @@ export default function BracketContent() {
         .sort((a, b) => a.id.localeCompare(b.id))
     const final = matches.filter((m) => m.stage === 'FINAL')[0] ?? null
 
-    const hasAny =
-        qualifications.length + quarters.length + semis.length + (final ? 1 : 0) > 0
-
-    // Colonnes actives : on ne garde que celles qui ont des matchs
+    const hasAny = matches.length > 0
+    // Colonnes : on garde toujours les stages "structurels" (QF, SF, F)
+    // même vides, pour que le diagramme reste visible.
     const columns: { stage: Match['stage']; matches: Match[] }[] = []
-    if (qualifications.length > 0) columns.push({ stage: 'QUALIFICATION', matches: qualifications })
-    if (quarters.length > 0) columns.push({ stage: 'QUARTER_FINAL', matches: quarters })
-    if (semis.length > 0) columns.push({ stage: 'SEMI_FINAL', matches: semis })
-    if (final) columns.push({ stage: 'FINAL', matches: [final] })
+    if (qualifications.length > 0) {
+        columns.push({ stage: 'QUALIFICATION', matches: qualifications })
+    }
+    columns.push({ stage: 'QUARTER_FINAL', matches: quarters })
+    columns.push({ stage: 'SEMI_FINAL', matches: semis })
+    columns.push({ stage: 'FINAL', matches: final ? [final] : [] })
 
     return (
         <AdminLayout>
@@ -124,7 +141,7 @@ export default function BracketContent() {
                         </p>
                     </div>
                 ) : (
-                    <Bracket columns={columns} />
+                    <Bracket columns={columns} role={role} />
                 )}
             </div>
         </AdminLayout>
@@ -137,47 +154,65 @@ export default function BracketContent() {
 
 function Bracket({
     columns,
+    role,
 }: {
     columns: { stage: Match['stage']; matches: Match[] }[]
+    role: UserRole
 }) {
     const totalColumns = columns.length
-    /* Hauteur disponible par match en % (réparti sur la colonne 0 qui a le plus de matchs) */
-    const baseCount = columns[0]?.matches.length ?? 1
 
     return (
         <div className="relative flex flex-1 overflow-hidden">
-            {/* Rendu des colonnes */}
             {columns.map((col, ci) => {
                 const isLast = ci === totalColumns - 1
-                const prevMatches = ci > 0 ? columns[ci - 1].matches.length : 0
+                const prevMatchesCount = ci > 0 ? columns[ci - 1].matches.length : 0
+                const capacity = STAGE_CAPACITY[col.stage]
+
+                // Nombre de slots à afficher dans cette colonne
+                // = max(capacité du stage, matchs existants)
+                const slotsCount = Math.max(capacity, col.matches.length)
+
+                // Nombre de slots dans la colonne précédente
+                const prevCapacity = ci > 0 ? STAGE_CAPACITY[columns[ci - 1].stage] : 0
+                const prevSlotsCount = ci > 0
+                    ? Math.max(prevCapacity, prevMatchesCount)
+                    : 0
 
                 return (
                     <div
                         key={col.stage}
                         className="relative flex min-h-0 flex-1"
-                        style={{
-                            /* Chaque colonne prend une fraction égale */
-                            flex: '1 1 0',
-                        }}
+                        style={{ flex: '1 1 0' }}
                     >
-                        {/* Lignes de connexion (sauf pour la première colonne) */}
+                        {/* Lignes de connexion */}
                         {ci > 0 && (
                             <ConnectorLines
-                                count={col.matches.length}
-                                prevCount={prevMatches}
-                                baseCount={baseCount}
+                                count={slotsCount}
+                                prevCount={prevSlotsCount}
                             />
                         )}
 
-                        {/* Cartes de la colonne */}
+                        {/* Slots de la colonne */}
                         <div className="relative flex min-h-0 flex-1 flex-col justify-around gap-2 py-1">
-                            {col.matches.map((match) => (
-                                <MatchCard
-                                    key={match.id}
-                                    match={match}
-                                    isFinal={col.stage === 'FINAL'}
-                                />
-                            ))}
+                            {Array.from({ length: slotsCount }).map((_, i) => {
+                                const match = col.matches[i]
+                                if (match) {
+                                    return (
+                                        <MatchCard
+                                            key={match.id}
+                                            match={match}
+                                            isFinal={col.stage === 'FINAL'}
+                                            role={role}
+                                        />
+                                    )
+                                }
+                                return (
+                                    <EmptySlotCard
+                                        key={`empty-${col.stage}-${i}`}
+                                        stage={col.stage}
+                                    />
+                                )
+                            })}
                         </div>
                     </div>
                 )
@@ -186,24 +221,45 @@ function Bracket({
     )
 }
 
-/* ────────── Lignes de connexion ──────────
-   Dessine les lignes qui relient les matchs de la colonne précédente
-   au match courant. Utilise un SVG qui couvre toute la colonne. */
+/* ────────── Carte slot vide (TBD) ────────── */
+
+function EmptySlotCard({ stage }: { stage: Match['stage'] }) {
+    return (
+        <div
+            className="relative flex shrink-0 flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-rose-200 bg-white/50 p-2"
+            style={{ maxHeight: '100%' }}
+        >
+            <div
+                className={`h-0.5 w-full rounded bg-gradient-to-r ${stageConfig[stage].accent} opacity-30`}
+                aria-hidden
+            />
+            <div className="flex flex-col items-center gap-0.5 py-1">
+                <span className="text-[10px] font-black text-[#94a3b8]">??</span>
+                <span className="text-[8px] font-bold uppercase tracking-wider text-[#cbd5e1]">
+                    VS
+                </span>
+                <span className="text-[10px] font-black text-[#94a3b8]">??</span>
+            </div>
+        </div>
+    )
+}
+
+/* ────────── Lignes de connexion ────────── */
 
 function ConnectorLines({
     count,
     prevCount,
-    baseCount,
 }: {
     count: number
     prevCount: number
-    baseCount: number
 }) {
-    /* Position verticale en % de chaque match de la colonne précédente */
+    if (prevCount === 0 || count === 0) return null
+
+    /* Position verticale en % de chaque slot de la colonne précédente */
     const prevPositions = Array.from({ length: prevCount }, (_, i) =>
         ((i + 0.5) / prevCount) * 100
     )
-    /* Position verticale en % de chaque match de la colonne actuelle */
+    /* Position verticale en % de chaque slot de la colonne actuelle */
     const currPositions = Array.from({ length: count }, (_, i) =>
         ((i + 0.5) / count) * 100
     )
@@ -215,19 +271,13 @@ function ConnectorLines({
             viewBox="0 0 100 100"
         >
             {currPositions.map((yCurr, i) => {
-                /* Chaque match de la colonne actuelle est relié aux 2 matchs précédents
-                   (sauf si prevCount < 2*count, alors on adapte) */
-                const parentIndex1 = i * 2
-                const parentIndex2 = i * 2 + 1
+                // Chaque slot actuel est relié aux 2 slots précédents (ratio classique)
+                const ratio = prevCount / count
                 const parents: number[] = []
-                if (prevPositions[parentIndex1] !== undefined) parents.push(prevPositions[parentIndex1])
-                if (prevPositions[parentIndex2] !== undefined) parents.push(prevPositions[parentIndex2])
-                /* Fallback : si pas assez de parents, prend les adjacents */
-                if (parents.length === 0) {
-                    const ratio = prevCount / count
-                    for (let k = 0; k < ratio; k++) {
-                        const idx = i * ratio + k
-                        if (prevPositions[idx] !== undefined) parents.push(prevPositions[idx])
+                for (let k = 0; k < ratio; k++) {
+                    const idx = i * ratio + k
+                    if (prevPositions[idx] !== undefined) {
+                        parents.push(prevPositions[idx])
                     }
                 }
 
@@ -250,31 +300,45 @@ function ConnectorLines({
     )
 }
 
+/* ────────── Lignes de connexion ──────────
+   Dessine les lignes qui relient les matchs de la colonne précédente
+   au match courant. Utilise un SVG qui couvre toute la colonne. */
+
+
 /* ────────── Carte de match ────────── */
 
-function MatchCard({ match, isFinal }: { match: Match; isFinal?: boolean }) {
+function MatchCard({
+    match,
+    isFinal,
+    role,
+}: {
+    match: Match
+    isFinal?: boolean
+    role: UserRole
+}) {
     const status = matchStatus(match)
     const round = currentRound(match)
-
     const scoreA = round?.result ? Number(round.result.candidateAScore) : null
     const scoreB = round?.result ? Number(round.result.candidateBScore) : null
-
     const isWinnerA = Boolean(match.winnerId && match.winnerId === match.candidateA?.id)
     const isWinnerB = Boolean(match.winnerId && match.winnerId === match.candidateB?.id)
     const isFinished = Boolean(match.winnerId)
 
-    /* Bordure dynamique selon le statut */
     const borderColor =
         status === 'OPEN' ? '#fb923c'
             : status === 'CLOSED' ? '#10b981'
                 : '#e5e7eb'
 
+    // 🎯 ADMIN → /results, sinon → /vote
+    const href =
+        role === 'ADMIN'
+            ? `/results/${match.id}?tournamentId=${encodeURIComponent(match.tournament.id)}`
+            : `/vote/${match.id}?tournamentId=${encodeURIComponent(match.tournament.id)}`
+
     return (
         <Link
-            href={`/vote/${match.id}?tournamentId=${encodeURIComponent(match.tournament.id)}`}
-            className={`group relative block shrink-0 overflow-hidden rounded-lg border bg-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${isFinal && isFinished
-                ? 'border-amber-400 shadow-[0_0_0_2px_rgba(251,191,36,0.25)]'
-                : ''
+            href={href}
+            className={`group relative block shrink-0 overflow-hidden rounded-lg border bg-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${isFinal && isFinished ? 'border-amber-400 shadow-[0_0_0_2px_rgba(251,191,36,0.25)]' : ''
                 }`}
             style={{
                 borderColor: isFinal && isFinished ? undefined : borderColor,
