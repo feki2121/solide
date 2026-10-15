@@ -270,13 +270,13 @@ export function ResultsScreen({
                 {/* Score final (victoires de rounds) */}
                 <div className="final-score">
                     <div className="score-player score-a">
+                        <span className="score-number">{winsB}</span>
                         <span>{nameA}</span>
-                        <span className="score-number">{winsA}</span>
                     </div>
                     <div className="final-versus">VS</div>
                     <div className="score-player score-b">
                         <span>{nameB}</span>
-                        <span className="score-number">{winsB}</span>
+                        <span className="score-number">{winsA}</span>
                     </div>
                 </div>
             </section>
