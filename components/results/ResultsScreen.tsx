@@ -142,15 +142,55 @@ export function ResultsScreen({
         return null
     }
 
-    // Compte les victoires de rounds pour le score final
-    const roundsFinished = match.rounds.filter((r) => r.result).length
+    // ────────── Calcul du score final ──────────
+    // Pour chaque round :
+    //   - regroupe les votes par juge
+    //   - chaque juge vote pour A (moyenne < 50), B (moyenne > 50) ou neutre (= 50)
+    //   - le candidat avec le plus de votes de juges remporte le round (+1 point)
+    //
+    // On utilise d'abord le `result` officiel si présent, sinon on recalcule
+    // à partir des votes bruts (au cas où le round vient juste d'être fermé).
 
-    const winsA = match.rounds.filter(
-        (r) => r.result && r.result.winnerId === match.candidateA?.id
-    ).length
-    const winsB = match.rounds.filter(
-        (r) => r.result && r.result.winnerId === match.candidateB?.id
-    ).length
+    function winnerOfRound(round: Round, match: MatchDetail): string | null {
+        // 1. Si le backend a déjà calculé le résultat, on l'utilise
+        if (round.result?.winnerId) return round.result.winnerId
+
+        // 2. Sinon, on recalcule localement à partir des votes
+        if (!round.votes || round.votes.length === 0) return null
+
+        // Regroupe les votes par juge
+        const byJudge = new Map<string, number[]>()
+        for (const v of round.votes) {
+            byJudge.set(v.judgeId, [...(byJudge.get(v.judgeId) ?? []), v.value])
+        }
+
+        let votesForA = 0
+        let votesForB = 0
+        for (const values of byJudge.values()) {
+            if (values.length === 0) continue
+            const avg = values.reduce((s, v) => s + v, 0) / values.length
+            if (avg < 50) votesForA++
+            else if (avg > 50) votesForB++
+        }
+
+        if (votesForA > votesForB) return match.candidateA?.id ?? null
+        if (votesForB > votesForA) return match.candidateB?.id ?? null
+        return null
+    }
+
+    // ─── Score final : nombre de rounds remportés ───
+    const finishedRounds = match.rounds.filter(
+        (r) => r.status === 'CLOSED' || r.result !== null || (r.votes?.length ?? 0) > 0
+    )
+
+    let winsA = 0
+    let winsB = 0
+    for (const round of match.rounds) {
+        const winnerId = winnerOfRound(round, match)
+        if (!winnerId) continue
+        if (winnerId === match.candidateA?.id) winsA++
+        else if (winnerId === match.candidateB?.id) winsB++
+    }
 
     return (
         <div className="battle-screen" style={{ backgroundColor: '#000', color: '#f5f5f5' }}>
