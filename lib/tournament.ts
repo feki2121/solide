@@ -128,6 +128,12 @@ export function calculateRoundResultByVotes(
  * - Pas de contrainte sur le statut du round (utile pour recalcul).
  * - Retourne `null` si aucun vote.
  */
+/**
+ * Calcule le résultat d'un round à partir des votes en base.
+ * - Utilise le VOTE MAJORITAIRE des jurys (pas la moyenne des notes).
+ * - `candidateAScore` / `candidateBScore` = nombre de jurys ayant voté pour A / B.
+ * - Retourne `null` si aucun vote.
+ */
 export async function calculateRoundResult(roundId: string) {
   const round = await prisma.round.findUnique({
     where: { id: roundId },
@@ -139,28 +145,19 @@ export async function calculateRoundResult(roundId: string) {
     throw new Error('MATCH_CANDIDATES_REQUIRED')
   }
 
-  // Groupe les votes par critère
-  const grouped = new Map<string, number[]>()
-  for (const vote of round.votes) {
-    grouped.set(vote.criterion, [
-      ...(grouped.get(vote.criterion) ?? []),
-      vote.value,
-    ])
-  }
-
-  // Si aucun vote → on supprime tout résultat existant et on renvoie null
-  if (grouped.size === 0) {
+  if (round.votes.length === 0) {
     await prisma.roundResult.deleteMany({ where: { roundId } })
     return null
   }
 
-  const result = calculateScores(
-    grouped,
+  // ✅ Utilise le VOTE MAJORITAIRE des jurys
+  const result = calculateRoundResultByVotes(
+    round.votes.map((v) => ({ judgeId: v.judgeId, value: v.value })),
     round.match.candidateAId,
     round.match.candidateBId,
   )
 
-  return prisma.roundResult.upsert({
+  const savedResult = await prisma.roundResult.upsert({
     where: { roundId },
     create: { roundId, ...result },
     update: {
@@ -170,6 +167,10 @@ export async function calculateRoundResult(roundId: string) {
       calculatedAt: new Date(),
     },
   })
+
+  console.log(`📊 [roundResult] Round ${roundId} calculé:`, savedResult)
+
+  return savedResult
 }
 
 // ───────────── Résultat d'un match ─────────────
@@ -182,37 +183,37 @@ export async function calculateRoundResult(roundId: string) {
  */
 /**
  * Calcule le résultat final d'un match.
- * Le score = nombre de rounds gagnés par chaque candidat.
+ * Le score = nombre de rounds gagnés par chaque candidat (1 point par round gagné).
  */
 export async function calculateMatchResult(matchId: string) {
-  const match = await prisma.match.findUnique({
-    where: { id: matchId },
-    include: { rounds: { include: { result: true } } },
-  })
-
-  if (!match || !match.candidateAId || !match.candidateBId) {
-    throw new Error('MATCH_NOT_READY')
-  }
-
-  const roundsWithResult = match.rounds.filter((r) => r.result)
-
-  if (roundsWithResult.length === 0) {
-    throw new Error('NO_ROUND_RESULT')
-  }
-
-  // Compte les victoires de rounds
-  const winsA = roundsWithResult.filter(
-    (r) => r.result!.winnerId === match.candidateAId
-  ).length
-  const winsB = roundsWithResult.filter(
-    (r) => r.result!.winnerId === match.candidateBId
-  ).length
-
-  // Le candidat avec le plus de victoires remporte le match
-  const winnerId =
-    winsA >= winsB ? match.candidateAId : match.candidateBId
-
   return prisma.$transaction(async (tx) => {
+    const match = await tx.match.findUnique({
+      where: { id: matchId },
+      include: { rounds: { include: { result: true } } },
+    })
+
+    if (!match || !match.candidateAId || !match.candidateBId) {
+      throw new Error('MATCH_NOT_READY')
+    }
+
+    const roundsWithResult = match.rounds.filter((r) => r.result)
+
+    if (roundsWithResult.length === 0) {
+      throw new Error('NO_ROUND_RESULT')
+    }
+
+    // Compte les victoires de rounds
+    const winsA = roundsWithResult.filter(
+      (r) => r.result!.winnerId === match.candidateAId
+    ).length
+    const winsB = roundsWithResult.filter(
+      (r) => r.result!.winnerId === match.candidateBId
+    ).length
+
+    // Le candidat avec le plus de victoires remporte le match
+    const winnerId =
+      winsA >= winsB ? match.candidateAId : match.candidateBId
+
     const result = await tx.matchResult.upsert({
       where: { matchId },
       create: {
@@ -234,18 +235,35 @@ export async function calculateMatchResult(matchId: string) {
       data: { winnerId },
     })
 
+    console.log(`🏆 [matchResult] Match ${matchId} calculé: winnerId=${winnerId}, score=${winsA}-${winsB}`)
+
     // Propagation vers le match suivant (bracket)
-    const next = await tx.match.findFirst({
-      where: { OR: [{ nextMatchAId: matchId }, { nextMatchBId: matchId }] },
-    })
-    if (next) {
+    // Si currentMatch.nextMatchAId existe, mettre winnerId dans candidateAId du match cible
+    if (match.nextMatchAId) {
+      console.log(
+        `🚀 [propagation] Match ${matchId} -> winnerId ${winnerId} propagé dans candidateAId du match cible ${match.nextMatchAId}`
+      )
       await tx.match.update({
-        where: { id: next.id },
-        data:
-          next.nextMatchAId === matchId
-            ? { candidateAId: winnerId }
-            : { candidateBId: winnerId },
+        where: { id: match.nextMatchAId },
+        data: { candidateAId: winnerId },
       })
+    }
+
+    // Idem pour nextMatchBId → candidateBId
+    if (match.nextMatchBId) {
+      console.log(
+        `🚀 [propagation] Match ${matchId} -> winnerId ${winnerId} propagé dans candidateBId du match cible ${match.nextMatchBId}`
+      )
+      await tx.match.update({
+        where: { id: match.nextMatchBId },
+        data: { candidateBId: winnerId },
+      })
+    }
+
+    if (!match.nextMatchAId && !match.nextMatchBId) {
+      console.log(
+        `🏁 [propagation] Match ${matchId} sans match suivant (ex. Finale)`
+      )
     }
 
     return result
