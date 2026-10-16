@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, RefreshCw, Trophy } from 'lucide-react'
+import { ArrowLeft, RefreshCw } from 'lucide-react'
 
 type Criterion = 'technique' | 'vocabulary' | 'originality' | 'musicality' | 'execution'
 
@@ -41,7 +41,48 @@ type MatchDetail = {
     assignedJudges: Judge[]
 }
 
-const POLL_INTERVAL = 3000   // 3 secondes
+const POLL_INTERVAL = 3000
+
+/**
+ * Vérifie que TOUS les jurys assignés ont voté pour ce round.
+ */
+function isRoundComplete(round: Round, assignedJudgeIds: string[]): boolean {
+    if (assignedJudgeIds.length === 0) return false
+    const votersSet = new Set(round.votes.map((v) => v.judgeId))
+    return assignedJudgeIds.every((judgeId) => votersSet.has(judgeId))
+}
+
+/**
+ * Détermine le vainqueur d'un round par MAJORITÉ DE JURYS.
+ * Un round remporté = 1 point (pas le nombre de votes individuels).
+ * Retourne `null` en cas d'égalité parfaite.
+ */
+function winnerOfRound(round: Round, match: MatchDetail): string | null {
+    if (round.result?.winnerId) return round.result.winnerId
+    if (!round.votes || round.votes.length === 0) return null
+
+    // Regroupe les votes par jury
+    const byJudge = new Map<string, number[]>()
+    for (const v of round.votes) {
+        byJudge.set(v.judgeId, [...(byJudge.get(v.judgeId) ?? []), v.value])
+    }
+
+    // Chaque jury vote globalement A ou B selon la moyenne de ses notes
+    let judgesForA = 0
+    let judgesForB = 0
+
+    for (const values of byJudge.values()) {
+        if (values.length === 0) continue
+        const avg = values.reduce((s, v) => s + v, 0) / values.length
+        if (avg < 50) judgesForA++
+        else if (avg > 50) judgesForB++
+        // avg === 50 → neutre, ne compte pas
+    }
+
+    if (judgesForA > judgesForB) return match.candidateA?.id ?? null
+    if (judgesForB > judgesForA) return match.candidateB?.id ?? null
+    return null // égalité parfaite (ex. 1-1 avec un juge neutre, ou aucun vote)
+}
 
 export function ResultsScreen({
     matchId,
@@ -92,6 +133,13 @@ export function ResultsScreen({
         }
     }, [load])
 
+    // Re-fetch au retour de focus
+    useEffect(() => {
+        const onFocus = () => void load()
+        window.addEventListener('focus', onFocus)
+        return () => window.removeEventListener('focus', onFocus)
+    }, [load])
+
     if (loading && !match) {
         return (
             <div className="flex min-h-screen items-center justify-center bg-black text-white">
@@ -120,82 +168,33 @@ export function ResultsScreen({
     const nameA = match.candidateA?.name ?? 'TBD'
     const nameB = match.candidateB?.name ?? 'TBD'
     const judges = match.assignedJudges
+    const assignedJudgeIds = judges.map((j) => j.id)
 
-    // Score final = dernier round avec résultat (ou le round OPEN en cours)
-    const currentRound =
-        match.rounds.find((r) => r.status === 'OPEN') ??
-        match.rounds[match.rounds.length - 1] ??
-        null
-
-    const scoreA = currentRound?.result ? Number(currentRound.result.candidateAScore) : null
-    const scoreB = currentRound?.result ? Number(currentRound.result.candidateBScore) : null
-
-    // Compte les votes "A" (value < 50) et "B" (value > 50) par juge pour le round courant
-    function judgeVoteColor(judgeId: string, criterion: string): 'blue' | 'red' | null {
-        if (!currentRound) return null
-        const vote = currentRound.votes.find(
-            (v) => v.judgeId === judgeId && v.criterion === criterion
-        )
-        if (!vote) return null
-        if (vote.value < 50) return 'red'   // penche A (gauche)
-        if (vote.value > 50) return 'blue'  // penche B (droite)
-        return null
-    }
-
-    // ────────── Calcul du score final ──────────
+    // ────────── Score final ──────────
     // Pour chaque round :
-    //   - regroupe les votes par juge
-    //   - chaque juge vote pour A (moyenne < 50), B (moyenne > 50) ou neutre (= 50)
-    //   - le candidat avec le plus de votes de juges remporte le round (+1 point)
-    //
-    // On utilise d'abord le `result` officiel si présent, sinon on recalcule
-    // à partir des votes bruts (au cas où le round vient juste d'être fermé).
-
-    function winnerOfRound(round: Round, match: MatchDetail): string | null {
-        // 1. Si le backend a déjà calculé le résultat, on l'utilise
-        if (round.result?.winnerId) return round.result.winnerId
-
-        // 2. Sinon, on recalcule localement à partir des votes
-        if (!round.votes || round.votes.length === 0) return null
-
-        // Regroupe les votes par juge
-        const byJudge = new Map<string, number[]>()
-        for (const v of round.votes) {
-            byJudge.set(v.judgeId, [...(byJudge.get(v.judgeId) ?? []), v.value])
-        }
-
-        let votesForA = 0
-        let votesForB = 0
-        for (const values of byJudge.values()) {
-            if (values.length === 0) continue
-            const avg = values.reduce((s, v) => s + v, 0) / values.length
-            if (avg < 50) votesForA++
-            else if (avg > 50) votesForB++
-        }
-
-        if (votesForA > votesForB) return match.candidateA?.id ?? null
-        if (votesForB > votesForA) return match.candidateB?.id ?? null
-        return null
-    }
-
-    // ─── Score final : nombre de rounds remportés ───
-    const finishedRounds = match.rounds.filter(
-        (r) => r.status === 'CLOSED' || r.result !== null || (r.votes?.length ?? 0) > 0
-    )
-
+    //   1. Vérifier que TOUS les jurys assignés ont voté → sinon on ignore le round
+    //   2. Déterminer le vainqueur par majorité de jurys
+    //   3. Ajouter 1 point (et pas plus) au candidat vainqueur
     let winsA = 0
     let winsB = 0
+
     for (const round of match.rounds) {
+        // 1. Le round doit être complet
+        if (!isRoundComplete(round, assignedJudgeIds)) continue
+
+        // 2. Qui a remporté ce round ?
         const winnerId = winnerOfRound(round, match)
-        if (!winnerId) continue
-        if (winnerId === match.candidateA?.id) winsA++
-        else if (winnerId === match.candidateB?.id) winsB++
+        if (!winnerId) continue // égalité → personne ne marque
+
+        // 3. +1 point pour le vainqueur
+        if (winnerId === match.candidateA?.id) winsA += 1
+        else if (winnerId === match.candidateB?.id) winsB += 1
     }
 
     return (
         <div className="battle-screen" style={{ backgroundColor: '#000', color: '#f5f5f5' }}>
             <section className="scoreboard">
-                {/* Retour */}
+                {/* Retour + Live */}
                 <div className="mb-3 flex items-center justify-between">
                     <Link
                         href={tournamentId ? `/bracket?tournamentId=${tournamentId}` : '/bracket'}
@@ -232,51 +231,77 @@ export function ResultsScreen({
                         ))}
                     </div>
 
-                    {match.rounds.map((round) => (
-                        <div className="round-row" key={round.id}>
-                            <div className="round-name">ROUND {round.number}</div>
+                    {match.rounds.map((round) => {
+                        const isComplete = isRoundComplete(round, assignedJudgeIds)
+                        const votersCount =
+                            round.votes.length > 0
+                                ? new Set(round.votes.map((v) => v.judgeId)).size
+                                : 0
+                        const totalJudges = assignedJudgeIds.length
 
-                            {judges.map((j) => {
-                                // Affiche une cellule colorée selon le vote du juge sur le critère principal
-                                // Ici on résume : le juge a-t-il voté ? Pour qui globalement ?
-                                const judgeVotes = round.votes.filter((v) => v.judgeId === j.id)
-                                const avg =
-                                    judgeVotes.length > 0
-                                        ? judgeVotes.reduce((s, v) => s + v.value, 0) /
-                                        judgeVotes.length
-                                        : null
-                                const cls =
-                                    avg == null
-                                        ? ''
-                                        : avg < 50
-                                            ? 'red'
-                                            : avg > 50
-                                                ? 'blue'
-                                                : ''
+                        return (
+                            <div className="round-row" key={round.id}>
+                                <div className="round-name">
+                                    ROUND {round.number}
+                                    {!isComplete && totalJudges > 0 && (
+                                        <span className="ml-2 text-[9px] font-bold text-[#f59e0b]">
+                                            {votersCount}/{totalJudges}
+                                        </span>
+                                    )}
+                                </div>
 
-                                return (
-                                    <div className="judge-cell" key={j.id}>
-                                        {cls ? <span className={`result ${cls}`} /> : <span className="text-[10px] text-[#475569]">—</span>}
-                                    </div>
-                                )
-                            })}
-                        </div>
-                    ))}
+                                {judges.map((j) => {
+                                    // Récupère les votes de ce juge pour ce round
+                                    const judgeVotes = round.votes.filter(
+                                        (v) => v.judgeId === j.id
+                                    )
+                                    // Moyenne des votes de ce juge pour ce round
+                                    const avg =
+                                        judgeVotes.length > 0
+                                            ? judgeVotes.reduce((s, v) => s + v.value, 0) /
+                                            judgeVotes.length
+                                            : null
+
+                                    // Couleur : rouge si penche A (< 50), bleu si penche B (> 50)
+                                    const cls =
+                                        avg === null
+                                            ? ''
+                                            : avg < 50
+                                                ? 'red'
+                                                : avg > 50
+                                                    ? 'blue'
+                                                    : ''
+
+                                    return (
+                                        <div className="judge-cell" key={j.id}>
+                                            {cls ? (
+                                                <span className={`result ${cls}`} />
+                                            ) : (
+                                                <span className="text-[10px] text-[#475569]">
+                                                    —
+                                                </span>
+                                            )}
+                                        </div>
+                                    )
+                                })}
+                            </div>
+                        )
+                    })}
                 </div>
 
-                {/* Titre */}
+                {/* Titre du combat */}
                 <div className="battle-title">{match.name.toUpperCase()}</div>
 
-                {/* Score final (victoires de rounds) */}
+                {/* Score final */}
                 <div className="final-score">
                     <div className="score-player score-a">
-                        <span className="score-number">{winsB}</span>
                         <span>{nameA}</span>
+                        <span className="score-number">{winsA}</span>
                     </div>
                     <div className="final-versus">VS</div>
                     <div className="score-player score-b">
                         <span>{nameB}</span>
-                        <span className="score-number">{winsA}</span>
+                        <span className="score-number">{winsB}</span>
                     </div>
                 </div>
             </section>

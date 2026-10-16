@@ -76,8 +76,10 @@ export default function BracketContent() {
             .then((user) => setRole(user?.role ?? null))
             .catch(() => setRole(null))
     }, [])
+
     const load = useCallback(async () => {
-        setLoading(true)
+        // Ne pas afficher le loader si on a déjà des données
+        if (matches.length === 0) setLoading(true)
         setError(null)
         try {
             const url = tournamentId
@@ -90,9 +92,13 @@ export default function BracketContent() {
         } finally {
             setLoading(false)
         }
-    }, [tournamentId])
+    }, [tournamentId, matches.length])
 
-    useEffect(() => { void load() }, [load])
+    useEffect(() => {
+        void load()
+        const interval = setInterval(() => void load(), 5000) // toutes les 5s
+        return () => clearInterval(interval)
+    }, [load])
 
     const qualifications = matches
         .filter((m) => m.stage === 'QUALIFICATION')

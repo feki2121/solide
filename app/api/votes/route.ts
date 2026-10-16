@@ -78,15 +78,43 @@ export async function POST(request: Request) {
             data: { userId: user.id, action: 'vote submitted', entityId: round.id },
         })
 
-        // 👇 Vérifie si TOUS les juges assignés ont voté
-        const totalJudges = round.match.assignments.length
-        const distinctVoters = await prisma.vote.findMany({
+        // 👇 Compte les juges assignés AU MATCH qui ont voté
+        // On se base sur les votes réels, pas sur tous les juges en base.
+        const votesInRound = await prisma.vote.findMany({
             where: { roundId: round.id },
-            distinct: ['judgeId'],
-            select: { judgeId: true },
+            select: { judgeId: true, criterion: true },
         })
 
-        const allJudgesVoted = distinctVoters.length >= totalJudges
+        // Groupe par juge pour vérifier que chaque juge a voté TOUS les critères
+        const byJudge = new Map<string, Set<string>>()
+        for (const v of votesInRound) {
+            if (!byJudge.has(v.judgeId)) byJudge.set(v.judgeId, new Set())
+            byJudge.get(v.judgeId)!.add(v.criterion)
+        }
+
+        // Liste des User.id qui ont voté les 5 critères (car Vote.judgeId pointe vers User.id)
+        const completedUserIds = [...byJudge.entries()]
+            .filter(([_, criteria]) => criteria.size === 5)
+            .map(([userId]) => userId)
+
+        // Liste des Judge.id assignés au match (via JudgeAssignment)
+        const assignedJudgeIds = round.match.assignments.map((a) => a.judgeId)
+
+        // Pont via Judge.userId pour récupérer les User.id correspondants
+        const assignedJudges = await prisma.judge.findMany({
+            where: { id: { in: assignedJudgeIds } },
+            select: { id: true, userId: true },
+        })
+        const assignedUserIds = assignedJudges.map((j) => j.userId)
+
+        // Tous les juges assignés ont voté leurs 5 critères ?
+        const allJudgesVoted =
+            assignedUserIds.length > 0 &&
+            assignedUserIds.every((uid) => completedUserIds.includes(uid))
+
+        console.log('🔍 [votes] assignedUserIds:', assignedUserIds)
+        console.log('🔍 [votes] completedUserIds:', completedUserIds)
+        console.log('🔍 [votes] allJudgesVoted:', allJudgesVoted)
 
         let roundResult = null
         let matchResult = null
@@ -94,12 +122,14 @@ export async function POST(request: Request) {
         if (allJudgesVoted) {
             // 🎯 Calcule le résultat du round
             roundResult = await calculateRoundResult(round.id)
+            console.log('📊 [votes] roundResult:', roundResult)
 
             // Ferme le round
             await prisma.round.update({
                 where: { id: round.id },
                 data: { status: 'CLOSED', closedAt: new Date() },
             })
+            console.log(`🔒 [votes] round ${round.id} fermé (CLOSED)`)
 
             await prisma.auditLog.create({
                 data: {
@@ -117,9 +147,11 @@ export async function POST(request: Request) {
                     status: { not: 'CLOSED' },
                 },
             })
+            console.log(`🔍 [votes] rounds non fermés restants pour match ${round.matchId}:`, remainingRounds)
 
             if (remainingRounds === 0) {
                 matchResult = await calculateMatchResult(round.matchId)
+                console.log('🏆 [votes] matchResult:', matchResult)
             }
         }
 
