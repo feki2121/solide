@@ -12,7 +12,7 @@ type Tournament = { id: string; name: string }
 type Match = {
     id: string
     name: string
-    stage: 'QUALIFICATION' | 'QUARTER_FINAL' | 'SEMI_FINAL' | 'FINAL'
+    stage: 'QUALIFICATION' | 'ROUND_OF_16' | 'QUARTER_FINAL' | 'SEMI_FINAL' | 'FINAL'
     winnerId: string | null
     candidateA: Candidate | null
     candidateB: Candidate | null
@@ -29,6 +29,7 @@ async function readJson<T>(res: Response): Promise<T> {
 
 const stageLabels: Record<string, string> = {
     QUALIFICATION: 'Qualification',
+    ROUND_OF_16: 'Huitième de finale',
     QUARTER_FINAL: 'Quart de finale',
     SEMI_FINAL: 'Demi-finale',
     FINAL: 'Finale',
@@ -37,6 +38,7 @@ const stageLabels: Record<string, string> = {
 /** Nombre de matchs (paires) générés selon le stage. */
 const STAGE_PAIRS_COUNT: Record<string, number> = {
     QUALIFICATION: 1,
+    ROUND_OF_16: 8,
     QUARTER_FINAL: 4,
     SEMI_FINAL: 2,
     FINAL: 1,
@@ -284,6 +286,22 @@ export default function MatchesPage() {
     )
 }
 
+const STAGE_ORDER: ('QUALIFICATION' | 'ROUND_OF_16' | 'QUARTER_FINAL' | 'SEMI_FINAL' | 'FINAL')[] = [
+    'QUALIFICATION',
+    'ROUND_OF_16',
+    'QUARTER_FINAL',
+    'SEMI_FINAL',
+    'FINAL',
+]
+
+const STAGE_SHORT_LABELS: Record<string, string> = {
+    QUALIFICATION: 'Qualif.',
+    ROUND_OF_16: '1/8 Finale',
+    QUARTER_FINAL: '1/4 Finale',
+    SEMI_FINAL: '1/2 Finale',
+    FINAL: 'Finale',
+}
+
 function MatchForm({
     tournaments,
     judges,
@@ -293,11 +311,22 @@ function MatchForm({
     tournaments: Tournament[]
     judges: Judge[]
     onClose: () => void
-    onCreated: (count: number, tournamentId: string) => void   // ✅
+    onCreated: (count: number, tournamentId: string) => void
 }) {
     const [tournamentId, setTournamentId] = useState(tournaments[0]?.id ?? '')
-    const [stage, setStage] = useState<'QUALIFICATION' | 'QUARTER_FINAL' | 'SEMI_FINAL' | 'FINAL'>('QUARTER_FINAL')
-    const [roundsCount, setRoundsCount] = useState(3)
+    const [stage, setStage] = useState<'QUALIFICATION' | 'ROUND_OF_16' | 'QUARTER_FINAL' | 'SEMI_FINAL' | 'FINAL'>('ROUND_OF_16')
+    
+    // Configuration des rounds indépendants pour chaque étape
+    const [stageRounds, setStageRounds] = useState<Record<string, number>>({
+        QUALIFICATION: 2,
+        ROUND_OF_16: 2,
+        QUARTER_FINAL: 3,
+        SEMI_FINAL: 3,
+        FINAL: 5,
+    })
+
+    const [showPasteBox, setShowPasteBox] = useState(false)
+    const [pasteText, setPasteText] = useState('')
     const [submitting, setSubmitting] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
@@ -305,7 +334,7 @@ function MatchForm({
     const pairsCount = STAGE_PAIRS_COUNT[stage] ?? 1
     const candidatesCount = pairsCount * 2
 
-    // Un tableau de noms vide
+    // Un tableau de noms
     const [names, setNames] = useState<string[]>(
         Array.from({ length: candidatesCount }, () => '')
     )
@@ -316,7 +345,70 @@ function MatchForm({
     }, [stage, candidatesCount])
 
     function updateName(index: number, value: string) {
+        // Détection de collage multiple (séparé par retours à la ligne ou virgules)
+        if (value.includes('\n') || value.includes(',') || value.includes('\t')) {
+            const rawTokens = value
+                .split(/[\n,\t]+/)
+                .map((t) => t.trim())
+                .filter(Boolean)
+            if (rawTokens.length > 1) {
+                setNames((prev) => {
+                    const next = [...prev]
+                    for (let k = 0; k < rawTokens.length && index + k < next.length; k++) {
+                        next[index + k] = rawTokens[k]
+                    }
+                    return next
+                })
+                return
+            }
+        }
         setNames((prev) => prev.map((n, i) => (i === index ? value : n)))
+    }
+
+    function handleApplyBulkPaste() {
+        if (!pasteText.trim()) return
+        const tokens = pasteText
+            .split(/[\n,;\t]+/)
+            .map((s) => s.trim())
+            .filter(Boolean)
+
+        setNames((prev) => {
+            const next = Array.from({ length: candidatesCount }, () => '')
+            for (let i = 0; i < candidatesCount; i++) {
+                if (tokens[i]) next[i] = tokens[i]
+            }
+            return next
+        })
+        setShowPasteBox(false)
+        setPasteText('')
+    }
+
+    function setRoundsForStage(stg: string, val: number) {
+        const clamped = Math.max(1, Math.min(10, val))
+        setStageRounds((prev) => ({ ...prev, [stg]: clamped }))
+    }
+
+    function setAllActiveRounds(val: number) {
+        const clamped = Math.max(1, Math.min(10, val))
+        setStageRounds((prev) => {
+            const updated = { ...prev }
+            for (const stg of activeStages) {
+                updated[stg] = clamped
+            }
+            return updated
+        })
+    }
+
+    const currentStageIdx = STAGE_ORDER.indexOf(stage)
+    const activeStages = STAGE_ORDER.slice(currentStageIdx)
+
+    // Calcul du total des matchs générés
+    let totalGeneratedMatches = 0
+    let prevMatchesCount = pairsCount
+    totalGeneratedMatches += prevMatchesCount
+    for (let idx = currentStageIdx + 1; idx < STAGE_ORDER.length; idx++) {
+        prevMatchesCount = Math.ceil(prevMatchesCount / 2)
+        totalGeneratedMatches += prevMatchesCount
     }
 
     async function handleSubmit(e: React.FormEvent) {
@@ -349,7 +441,8 @@ function MatchForm({
                 body: JSON.stringify({
                     tournamentId,
                     stage,
-                    roundsCount,
+                    stageRounds, // Enregistrement des rounds indépendants par étape
+                    roundsCount: stageRounds[stage] ?? 3, // Compatibilité ascendante
                     candidateNames: trimmed,
                     judgeIds: judges.map((j) => j.id),
                 }),
@@ -365,108 +458,295 @@ function MatchForm({
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm" onClick={onClose}>
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-2 sm:p-4 backdrop-blur-sm"
+            onClick={onClose}
+        >
             <form
                 onSubmit={handleSubmit}
                 onClick={(e) => e.stopPropagation()}
-                className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-rose-100 bg-white p-6 shadow-xl"
+                className="flex h-[94vh] w-[96vw] max-w-7xl flex-col rounded-3xl border border-slate-200/80 bg-white shadow-2xl overflow-hidden"
             >
-                <div className="mb-5 flex items-start justify-between">
-                    <h2 className="text-lg font-bold text-[#0f172a]">Nouveau match</h2>
-                    <button type="button" onClick={onClose} className="text-[#94a3b8] hover:text-[#e63946]">
+                {/* ── EN-TÊTE FIXE DE LA MODAL ── */}
+                <div className="flex shrink-0 items-center justify-between border-b border-slate-100 bg-white px-6 py-4">
+                    <div className="flex items-center gap-3">
+                        <div className="flex size-10 items-center justify-center rounded-2xl bg-gradient-to-br from-[#FF6B4A] to-[#E63946] text-white shadow-md shadow-red-500/20">
+                            <Swords className="size-5" />
+                        </div>
+                        <div>
+                            <h2 className="text-lg font-black tracking-tight text-[#0f172a]">
+                                Nouveau tableau de tournoi
+                            </h2>
+                            <p className="text-xs font-medium text-[#64748b]">
+                                Configurez les étapes, les rounds indépendants et les participants
+                            </p>
+                        </div>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="rounded-xl p-2 text-[#94a3b8] hover:bg-slate-100 hover:text-[#e63946] transition-colors"
+                        title="Fermer"
+                    >
                         <X className="size-5" />
                     </button>
                 </div>
 
-                {/* Tournoi */}
-                <label className="mb-4 block">
-                    <span className="text-xs font-bold text-[#0f172a]">Tournoi <span className="text-[#e63946]">*</span></span>
-                    <select
-                        required
-                        value={tournamentId}
-                        onChange={(e) => setTournamentId(e.target.value)}
-                        className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:border-[#e63946]"
-                    >
-                        {tournaments.map((t) => (
-                            <option key={t.id} value={t.id}>{t.name}</option>
-                        ))}
-                    </select>
-                </label>
+                {/* ── CORPS SCROLLABLE : 2 COLONNES CONFORTABLES SUR DESKTOP ── */}
+                <div className="flex-1 overflow-y-auto bg-[#fafafc] p-6">
+                    <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 items-start">
+                        {/* ── COLONNE GAUCHE (CONFIGURATION DU TOURNOI & ROUNDS) ── */}
+                        <div className="flex flex-col gap-5 lg:col-span-5">
+                            {/* Carte 1 : Tournoi & Étape initiale */}
+                            <div className="rounded-2xl border border-slate-200/70 bg-white p-5 shadow-sm">
+                                <h3 className="text-xs font-black uppercase tracking-wider text-[#0f172a] mb-4">
+                                    Paramètres du tournoi
+                                </h3>
 
-                {/* Stage + Rounds */}
-                <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    <label className="block">
-                        <span className="text-xs font-bold text-[#0f172a]">Stage <span className="text-[#e63946]">*</span></span>
-                        <select
-                            value={stage}
-                            onChange={(e) => setStage(e.target.value as typeof stage)}
-                            className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:border-[#e63946]"
-                        >
-                            <option value="QUALIFICATION">Qualification</option>
-                            <option value="QUARTER_FINAL">Quart de finale</option>
-                            <option value="SEMI_FINAL">Demi-finale</option>
-                            <option value="FINAL">Finale</option>
-                        </select>
-                    </label>
+                                <label className="mb-4 block">
+                                    <span className="text-xs font-bold text-[#0f172a]">
+                                        Tournoi <span className="text-[#e63946]">*</span>
+                                    </span>
+                                    <select
+                                        required
+                                        value={tournamentId}
+                                        onChange={(e) => setTournamentId(e.target.value)}
+                                        className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold outline-none focus:border-[#e63946] transition-colors"
+                                    >
+                                        {tournaments.map((t) => (
+                                            <option key={t.id} value={t.id}>
+                                                {t.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </label>
 
-                    <label className="block">
-                        <span className="text-xs font-bold text-[#0f172a]">Nombre de rounds <span className="text-[#e63946]">*</span></span>
-                        <input
-                            type="number"
-                            min={1}
-                            max={10}
-                            value={roundsCount}
-                            onChange={(e) => setRoundsCount(Number(e.target.value))}
-                            className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:border-[#e63946]"
-                        />
-                        <span className="mt-1 block text-[10px] text-[#94a3b8]">
-                            Chaque match aura {roundsCount} round(s)
-                        </span>
-                    </label>
-                </div>
+                                <label className="block">
+                                    <span className="text-xs font-bold text-[#0f172a]">
+                                        Étape de départ <span className="text-[#e63946]">*</span>
+                                    </span>
+                                    <select
+                                        value={stage}
+                                        onChange={(e) => setStage(e.target.value as typeof stage)}
+                                        className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold outline-none focus:border-[#e63946] transition-colors"
+                                    >
+                                        <option value="QUALIFICATION">Qualification (2 candidats)</option>
+                                        <option value="ROUND_OF_16">Huitième de finale (16 candidats · 8 matchs)</option>
+                                        <option value="QUARTER_FINAL">Quart de finale (8 candidats · 4 matchs)</option>
+                                        <option value="SEMI_FINAL">Demi-finale (4 candidats · 2 matchs)</option>
+                                        <option value="FINAL">Finale seule (2 candidats · 1 match)</option>
+                                    </select>
+                                    <span className="mt-1.5 block text-[11px] font-medium text-[#64748b]">
+                                        L'arbre générera automatiquement tous les tours suivants jusqu'à la Finale.
+                                    </span>
+                                </label>
+                            </div>
 
-                {/* Grille de noms */}
-                <div className="mb-4 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-                    {names.map((name, i) => (
-                        <div
-                            key={i}
-                            className="flex items-center gap-2 rounded-xl border border-rose-100 bg-[#fff1f2]/30 px-3 py-2"
-                        >
-                            <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-white text-[11px] font-black text-[#e63946] border border-rose-200">
-                                {i + 1}
-                            </span>
-                            <input
-                                type="text"
-                                placeholder="Nom du candidat…"
-                                value={name}
-                                onChange={(e) => updateName(i, e.target.value)}
-                                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-[#e63946]"
-                            />
+                            {/* Carte 2 : Rounds indépendants par étape */}
+                            <div className="rounded-2xl border border-slate-200/70 bg-white p-5 shadow-sm">
+                                <div className="mb-3 flex items-center justify-between">
+                                    <div>
+                                        <h3 className="text-xs font-black uppercase tracking-wider text-[#0f172a]">
+                                            Rounds par étape
+                                        </h3>
+                                        <p className="text-[11px] font-medium text-[#64748b]">
+                                            Définissez le nombre de rounds indépendamment pour chaque étape
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* Raccourcis rapides */}
+                                <div className="mb-4 flex items-center gap-1.5 rounded-xl bg-slate-50 p-2 text-xs text-[#64748b]">
+                                    <span className="font-semibold text-[#0f172a] text-[11px]">Régler tous sur :</span>
+                                    {[1, 2, 3, 5].map((val) => (
+                                        <button
+                                            key={val}
+                                            type="button"
+                                            onClick={() => setAllActiveRounds(val)}
+                                            className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-[11px] font-bold text-[#0f172a] hover:border-[#e63946] hover:text-[#e63946] transition-colors"
+                                        >
+                                            {val} rds
+                                        </button>
+                                    ))}
+                                </div>
+
+                                {/* Liste des étapes actives avec configuration indépendante */}
+                                <div className="flex flex-col gap-2.5">
+                                    {activeStages.map((stg) => {
+                                        const currentVal = stageRounds[stg] ?? 3
+                                        const isFinal = stg === 'FINAL'
+                                        return (
+                                            <div
+                                                key={stg}
+                                                className={`flex items-center justify-between rounded-xl border p-3 transition-colors ${
+                                                    isFinal
+                                                        ? 'border-amber-200 bg-amber-50/40'
+                                                        : 'border-slate-100 bg-[#f8fafc]'
+                                                }`}
+                                            >
+                                                <div>
+                                                    <span className="font-bold text-xs text-[#0f172a] block">
+                                                        {stageLabels[stg]}
+                                                    </span>
+                                                    <span className="text-[10px] text-[#64748b]">
+                                                        {STAGE_PAIRS_COUNT[stg]} match(s) à ce stade
+                                                    </span>
+                                                </div>
+
+                                                <div className="flex items-center gap-2">
+                                                    {/* Stepper interactif */}
+                                                    <div className="flex items-center rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setRoundsForStage(stg, currentVal - 1)}
+                                                            disabled={currentVal <= 1}
+                                                            className="px-2.5 py-1 text-sm font-bold text-[#64748b] hover:bg-slate-100 hover:text-[#e63946] disabled:opacity-30 transition-colors"
+                                                        >
+                                                            -
+                                                        </button>
+                                                        <span className="w-8 text-center text-xs font-black tabular-nums text-[#0f172a]">
+                                                            {currentVal}
+                                                        </span>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setRoundsForStage(stg, currentVal + 1)}
+                                                            disabled={currentVal >= 10}
+                                                            className="px-2.5 py-1 text-sm font-bold text-[#64748b] hover:bg-slate-100 hover:text-[#e63946] disabled:opacity-30 transition-colors"
+                                                        >
+                                                            +
+                                                        </button>
+                                                    </div>
+                                                    <span className="text-xs font-medium text-[#64748b]">
+                                                        rd(s)
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        )
+                                    })}
+                                </div>
+                            </div>
+
+                            {/* Carte 3 : Informations Jurys */}
+                            <div className="rounded-2xl border border-rose-100 bg-[#fff1f2]/40 p-4">
+                                <p className="text-xs font-bold text-[#0f172a]">
+                                    Assignation des jurys
+                                </p>
+                                <p className="mt-1 text-[11px] text-[#64748b]">
+                                    {judges.length} jurys enregistrés seront assignés automatiquement à chaque match.
+                                </p>
+                            </div>
                         </div>
-                    ))}
+
+                        {/* ── COLONNE DROITE (GRILLE DES CANDIDATS / PARTICIPANTS) ── */}
+                        <div className="flex flex-col gap-4 rounded-2xl border border-slate-200/70 bg-white p-5 shadow-sm lg:col-span-7">
+                            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                                <div>
+                                    <h3 className="text-xs font-black uppercase tracking-wider text-[#0f172a]">
+                                        Candidats ({candidatesCount} participants requis)
+                                    </h3>
+                                    <p className="text-[11px] font-medium text-[#64748b]">
+                                        Renseignez les noms ou collez une liste complète
+                                    </p>
+                                </div>
+
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPasteBox(!showPasteBox)}
+                                    className="rounded-xl border border-rose-200 bg-[#fff1f2] px-3 py-1.5 text-xs font-bold text-[#e63946] hover:bg-rose-100 transition-colors"
+                                >
+                                    {showPasteBox ? 'Fermer le collage' : '📋 Coller une liste'}
+                                </button>
+                            </div>
+
+                            {/* Zone de collage rapide */}
+                            {showPasteBox && (
+                                <div className="rounded-xl border border-rose-200 bg-[#fff1f2]/50 p-3 flex flex-col gap-2">
+                                    <span className="text-xs font-bold text-[#0f172a]">
+                                        Collez les noms séparés par des retours à la ligne ou virgules :
+                                    </span>
+                                    <textarea
+                                        rows={4}
+                                        value={pasteText}
+                                        onChange={(e) => setPasteText(e.target.value)}
+                                        placeholder={`Nova\nVolt\nBlaze\nCypher\n...`}
+                                        className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-xs font-mono outline-none focus:border-[#e63946]"
+                                    />
+                                    <div className="flex justify-end gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPasteBox(false)}
+                                            className="px-3 py-1 text-xs font-medium text-[#64748b] hover:underline"
+                                        >
+                                            Annuler
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={handleApplyBulkPaste}
+                                            className="rounded-lg bg-[#e63946] px-3 py-1 text-xs font-bold text-white hover:bg-red-700"
+                                        >
+                                            Remplir les candidats
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Grille des candidats avec scroll fluide */}
+                            <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 max-h-[58vh] overflow-y-auto pr-1">
+                                {names.map((name, i) => (
+                                    <div
+                                        key={i}
+                                        className="flex items-center gap-2 rounded-xl border border-slate-200 bg-[#f8fafc] px-3 py-2 focus-within:border-[#e63946] focus-within:bg-white transition-all"
+                                    >
+                                        <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-white text-[11px] font-black text-[#e63946] border border-rose-200 shadow-xs">
+                                            {i + 1}
+                                        </span>
+                                        <input
+                                            type="text"
+                                            placeholder={`Nom du candidat ${i + 1}…`}
+                                            value={name}
+                                            onChange={(e) => updateName(i, e.target.value)}
+                                            className="w-full bg-transparent text-sm font-medium outline-none text-[#0f172a] placeholder:text-[#94a3b8]"
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    {error && (
+                        <p className="mt-5 rounded-2xl border border-rose-200 bg-[#fff1f2] px-4 py-3 text-xs font-semibold text-[#dc2626]">
+                            {error}
+                        </p>
+                    )}
                 </div>
 
-                {error && (
-                    <p className="mb-4 rounded-xl border border-rose-200 bg-[#fff1f2] px-3 py-2 text-xs font-semibold text-[#dc2626]">
-                        {error}
-                    </p>
-                )}
+                {/* ── PIED DE PAGE FIXE ── */}
+                <div className="flex shrink-0 items-center justify-between border-t border-slate-100 bg-white px-6 py-4">
+                    <div className="hidden sm:flex flex-col gap-0.5">
+                        <span className="text-xs font-black text-[#0f172a]">
+                            Total : {totalGeneratedMatches} match(s) générés ({pairsCount} match(s) à l'étape {stageLabels[stage]})
+                        </span>
+                        <span className="text-[11px] font-medium text-[#64748b]">
+                            Rounds configurés : {activeStages.map((s) => `${STAGE_SHORT_LABELS[s] || stageLabels[s]}: ${stageRounds[s] ?? 3} rds`).join(' · ')}
+                        </span>
+                    </div>
 
-                <div className="flex justify-end gap-2.5">
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-[#64748b] hover:bg-slate-50"
-                    >
-                        Annuler
-                    </button>
-                    <button
-                        type="submit"
-                        disabled={submitting}
-                        className="rounded-xl bg-gradient-to-r from-[#FF6B4A] to-[#E63946] px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-red-500/20 hover:opacity-95 disabled:opacity-50"
-                    >
-                        {submitting ? 'Création…' : `Créer ${pairsCount} match(s)`}
-                    </button>
+                    <div className="flex items-center gap-3">
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-[#64748b] hover:bg-slate-50 transition-colors"
+                        >
+                            Annuler
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={submitting}
+                            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#FF6B4A] to-[#E63946] px-6 py-2.5 text-sm font-bold text-white shadow-md shadow-red-500/20 hover:opacity-95 disabled:opacity-50 transition-all active:scale-[0.99]"
+                        >
+                            {submitting ? 'Création en cours…' : `Générer le tableau (${candidatesCount} candidats)`}
+                        </button>
+                    </div>
                 </div>
             </form>
         </div>

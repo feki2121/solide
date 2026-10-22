@@ -62,12 +62,13 @@ export async function GET(request: Request) {
   )
 }
 
-const STAGES = ['QUALIFICATION', 'QUARTER_FINAL', 'SEMI_FINAL', 'FINAL'] as const
+const STAGES = ['QUALIFICATION', 'ROUND_OF_16', 'QUARTER_FINAL', 'SEMI_FINAL', 'FINAL'] as const
 
 const createSchema = z.object({
   tournamentId: z.string(),
   name: z.string().min(1),
   stage: z.enum(STAGES),
+  roundsCount: z.number().int().min(1).max(10).optional(),
   candidateAId: z.string().optional(),
   candidateBId: z.string().optional(),
   judgeIds: z.array(z.string()).optional(),
@@ -116,6 +117,7 @@ export async function POST(request: Request) {
         tournamentId: data.tournamentId,
         name: data.name,
         stage: data.stage,
+        roundsCount: data.roundsCount,
         candidateAId: data.candidateAId,
         candidateBId: data.candidateBId,
         assignments: data.judgeIds?.length

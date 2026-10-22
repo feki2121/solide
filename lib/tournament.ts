@@ -308,9 +308,18 @@ export async function calculateTournamentResult(tournamentId: string) {
 
 /**
  * Retourne `true` si le tournoi respecte le format classique
- * (4 quarts, 2 demis, 1 finale). Ne bloque rien, juste informatif.
+ * (8 huitièmes si présent, 4 quarts, 2 demis, 1 finale). Ne bloque rien, juste informatif.
  */
 export function validateTournamentShape(matches: Array<{ stage: string }>) {
+  const hasR16 = matches.some((m) => m.stage === 'ROUND_OF_16')
+  if (hasR16) {
+    return (
+      matches.filter((m) => m.stage === 'ROUND_OF_16').length === 8 &&
+      matches.filter((m) => m.stage === 'QUARTER_FINAL').length === 4 &&
+      matches.filter((m) => m.stage === 'SEMI_FINAL').length === 2 &&
+      matches.filter((m) => m.stage === 'FINAL').length === 1
+    )
+  }
   return (
     matches.filter((m) => m.stage === 'QUARTER_FINAL').length === 4 &&
     matches.filter((m) => m.stage === 'SEMI_FINAL').length === 2 &&

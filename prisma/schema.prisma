@@ -23,6 +23,7 @@ enum RoundStatus {
 }
 enum MatchStage {
   QUALIFICATION
+  ROUND_OF_16
   QUARTER_FINAL
   SEMI_FINAL
   FINAL
@@ -74,6 +75,7 @@ model Tournament {
   status TournamentStatus @default(DRAFT)
   winnerId String?
   winner Candidate? @relation(fields: [winnerId], references: [id])
+  stageRounds Json?
   createdAt DateTime @default(now())
   matches Match[]
 }
@@ -83,6 +85,7 @@ model Match {
   tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
   name String
   stage MatchStage
+  roundsCount Int?
   candidateAId String?
   candidateBId String?
   candidateA Candidate? @relation("CandidateA", fields: [candidateAId], references: [id])

@@ -3,20 +3,22 @@ import { prisma } from '@/lib/prisma'
 import { requireUser } from '@/lib/auth'
 import { z } from 'zod'
 
-const STAGES = ['QUALIFICATION', 'QUARTER_FINAL', 'SEMI_FINAL', 'FINAL'] as const
+const STAGES = ['QUALIFICATION', 'ROUND_OF_16', 'QUARTER_FINAL', 'SEMI_FINAL', 'FINAL'] as const
 
 type Stage = (typeof STAGES)[number]
 
 const input = z.object({
     tournamentId: z.string(),
     stage: z.enum(STAGES),
-    roundsCount: z.number().int().min(1).max(10),
+    roundsCount: z.number().int().min(1).max(10).optional(),
+    stageRounds: z.record(z.enum(STAGES), z.number().int().min(1).max(10)).optional(),
     candidateNames: z.array(z.string().min(1)).min(2),
     judgeIds: z.array(z.string()).optional(),
 })
 
 const stageLabels: Record<Stage, string> = {
     QUALIFICATION: 'Qualification',
+    ROUND_OF_16: 'Huitième de finale',
     QUARTER_FINAL: 'Quart de finale',
     SEMI_FINAL: 'Demi-finale',
     FINAL: 'Finale',
@@ -25,6 +27,7 @@ const stageLabels: Record<Stage, string> = {
 /** Ordre des stages pour le chaînage. */
 const STAGE_ORDER: Stage[] = [
     'QUALIFICATION',
+    'ROUND_OF_16',
     'QUARTER_FINAL',
     'SEMI_FINAL',
     'FINAL',
@@ -70,6 +73,7 @@ async function createMatchWithRounds(
             tournamentId: params.tournamentId,
             name: params.name,
             stage: params.stage,
+            roundsCount: params.roundsCount,
             candidateAId: params.candidateAId,
             candidateBId: params.candidateBId,
             assignments: params.judgeIds?.length
@@ -102,7 +106,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
     }
 
-    let data
+    let data: z.infer<typeof input>
     try {
         data = input.parse(await request.json())
     } catch (e) {
@@ -138,15 +142,32 @@ export async function POST(request: Request) {
         pairs.push({ candidateA: shuffled[i], candidateB: shuffled[i + 1] })
     }
 
+    /** Détermine le nombre de rounds pour un stage spécifique */
+    function getRoundsForStage(s: Stage): number {
+        if (data.stageRounds && typeof data.stageRounds[s] === 'number') {
+            return Math.max(1, Math.min(10, data.stageRounds[s]))
+        }
+        return data.roundsCount ?? 3
+    }
+
     try {
         const created = await prisma.$transaction(
             async (tx) => {
                 const currentStageIdx = STAGE_ORDER.indexOf(data.stage)
 
+                // Enregistre la configuration des rounds par étape sur le tournoi si fournie
+                if (data.stageRounds) {
+                    await tx.tournament.update({
+                        where: { id: data.tournamentId },
+                        data: { stageRounds: data.stageRounds },
+                    })
+                }
+
                 // ═══════════════════════════════════════════════
                 // 1. Créer tous les matchs du stage courant avec candidats
                 // ═══════════════════════════════════════════════════
                 const currentMatchIds: string[] = []
+                const currentStageRounds = getRoundsForStage(data.stage)
 
                 for (let i = 0; i < pairs.length; i++) {
                     const pair = pairs[i]
@@ -162,7 +183,7 @@ export async function POST(request: Request) {
                         tournamentId: data.tournamentId,
                         name: `${stageLabels[data.stage]} #${i + 1}`,
                         stage: data.stage,
-                        roundsCount: data.roundsCount,
+                        roundsCount: currentStageRounds,
                         judgeIds: data.judgeIds,
                         candidateAId: candidateA.id,
                         candidateBId: candidateB.id,
@@ -179,6 +200,7 @@ export async function POST(request: Request) {
 
                 for (let idx = currentStageIdx + 1; idx < STAGE_ORDER.length; idx++) {
                     const nextStage = STAGE_ORDER[idx]
+                    const nextStageRounds = getRoundsForStage(nextStage)
                     const nextCount = Math.ceil(previousMatchIds.length / 2)
 
                     // Vérifier s'il existe déjà des matchs de ce stage pour ce tournoi
@@ -192,13 +214,13 @@ export async function POST(request: Request) {
 
                     const nextMatchIds: string[] = existing.map((m: any) => m.id)
 
-                    // Créer les matchs manquants
+                    // Créer les matchs manquants avec le nombre de rounds spécifique à cette étape
                     for (let i = nextMatchIds.length; i < nextCount; i++) {
                         const newMatch = await createMatchWithRounds(tx, {
                             tournamentId: data.tournamentId,
                             name: `${stageLabels[nextStage]} #${i + 1}`,
                             stage: nextStage,
-                            roundsCount: data.roundsCount,
+                            roundsCount: nextStageRounds,
                             judgeIds: data.judgeIds,
                             roundStatus: 'PENDING', // Rounds des stages suivants en attente
                         })
@@ -244,7 +266,7 @@ export async function POST(request: Request) {
                 metadata: {
                     count: created.length,
                     stage: data.stage,
-                    rounds: data.roundsCount,
+                    stageRounds: data.stageRounds ?? { default: data.roundsCount ?? 3 },
                     shuffled: true,
                     chained: true,
                 },
