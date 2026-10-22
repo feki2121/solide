@@ -26,6 +26,8 @@ async function readJson<T>(res: Response): Promise<T> {
 }
 
 const stageLabels: Record<string, string> = {
+    QUALIFICATION: 'Qualification',
+    ROUND_OF_16: 'Huitième de finale',
     QUARTER_FINAL: 'Quart de finale',
     SEMI_FINAL: 'Demi-finale',
     FINAL: 'Finale',

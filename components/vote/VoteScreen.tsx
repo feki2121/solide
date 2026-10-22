@@ -41,7 +41,7 @@ type Round = {
 type MatchDetail = {
     id: string
     name: string
-    stage: 'QUALIFICATION' | 'QUARTER_FINAL' | 'SEMI_FINAL' | 'FINAL'
+    stage: 'QUALIFICATION' | 'ROUND_OF_16' | 'QUARTER_FINAL' | 'SEMI_FINAL' | 'FINAL'
     candidateA: { id: string; name: string } | null
     candidateB: { id: string; name: string } | null
     rounds: Round[]
@@ -67,6 +67,7 @@ const EMPTY_SCORES: Record<Criterion, number> = {
 
 const STAGE_LABELS: Record<string, string> = {
     QUALIFICATION: 'Qualification',
+    ROUND_OF_16: 'Huitième de finale',
     QUARTER_FINAL: 'Quart de finale',
     SEMI_FINAL: 'Demi-finale',
     FINAL: 'Finale',
