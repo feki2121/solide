@@ -4,6 +4,9 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* ═══════════════════════════════════════════════════════
+   THEME TOKENS (Tailwind inline)
+   ═══════════════════════════════════════════════════════ */
 @theme inline {
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -97,7 +100,7 @@
   --sidebar-border: #fecdd3;
   --sidebar-ring: #ff6b4a;
 
-  /* ── Slider tokens (nouveaux) ── */
+  /* ── Slider tokens ── */
   --slider-track: #e5e7eb;
   --slider-track-fill: #e63946;
   --slider-thumb-bg: #ffffff;
@@ -109,7 +112,7 @@
 }
 
 /* ═══════════════════════════════════════════════════════
-   THÈME DARK (optionnel, si tu réactives .dark)
+   THÈME DARK (optionnel)
    ═══════════════════════════════════════════════════════ */
 .dark {
   color-scheme: dark;
@@ -162,6 +165,16 @@
   --slider-focus-ring: rgba(255, 107, 74, 0.3);
 }
 
+/* ═══════════════════════════════════════════════════════
+   RESET GLOBAL (une seule fois)
+   ═══════════════════════════════════════════════════════ */
+* {
+  box-sizing: border-box;
+}
+
+/* ═══════════════════════════════════════════════════════
+   BASE LAYER
+   ═══════════════════════════════════════════════════════ */
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -268,7 +281,7 @@
   transform: scale(1.05);
 }
 
-/* Thumb Firefox — même taille que WebKit (avant : 15px, incohérent) */
+/* Thumb Firefox */
 .judge-range::-moz-range-thumb {
   width: 22px;
   height: 22px;
@@ -374,23 +387,8 @@
 }
 
 /* ═══════════════════════════════════════════════════════
-   RÉDUCTION DES ANIMATIONS (accessibilité)
+   BATTLE SCREEN (scoreboard live)
    ═══════════════════════════════════════════════════════ */
-@media (prefers-reduced-motion: reduce) {
-
-  .judge-range::-webkit-slider-thumb,
-  .judge-range::-moz-range-thumb,
-  .criterion-slider::-webkit-slider-thumb,
-  .criterion-slider::-moz-range-thumb {
-    transition: none;
-  }
-}
-
-
-* {
-  box-sizing: border-box;
-}
-
 .battle-screen {
   min-height: 100vh;
   min-height: 100svh;
@@ -581,198 +579,585 @@
   }
 }
 
+/* ═══════════════════════════════════════════════════════
+   BRACKET — Style Affiche (Flat, Géométrique, Rouge)
+   ═══════════════════════════════════════════════════════ */
 
- * {
-          box-sizing: border-box;
-        }
+.festival {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  /* Le rouge brique exact de l'affiche */
+  background: #a92f20;
+  font-family: "Arial Black", Impact, sans-serif;
+  transform-origin: center center;
+  will-change: transform;
+}
 
-        .festival {
-          width: 100%;
-          min-height: 100vh;
-          min-height: 100svh;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          overflow: hidden;
-          background: #a92f20;
-          font-family: Impact, "Arial Narrow", sans-serif;
-        }
+.board {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  color: #fff;
+  z-index: 2;
+}
 
-        .board {
-          position: relative;
-          width: 100%;
-          aspect-ratio: 16 / 9;
-          overflow: hidden;
-          color: #fff;
-          background: #a92f20;
-          container-type: inline-size;
-        }
+/* ── Bloc Logo Central (fond rouge plus clair) ── */
+.header-block {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 26%;
+  height: 42%;
+  background: #be3926;
+  /* Rouge légèrement plus clair pour détacher le logo */
+  z-index: 1;
+}
 
-        .festival-title,
-        .battle-title {
-          position: absolute;
-          z-index: 2;
-          top: 1.6%;
-          font-family: Impact, "Arial Narrow", sans-serif;
-          font-weight: 900;
-          font-size: 3.6cqw;
-          line-height: 0.85;
-          letter-spacing: -0.05cqw;
-          text-shadow: 0 1px 3px #6b1810;
-        }
+/* ── Typographies ── */
+.festival-title,
+.battle-title {
+  position: absolute;
+  z-index: 4;
+  top: 4%;
+  font-family: "Arial Black", Impact, sans-serif;
+  font-weight: 900;
+  font-size: 3.2cqw;
+  line-height: 0.9;
+  letter-spacing: -0.05cqw;
+  text-transform: uppercase;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
 
-        .festival-title {
-          left: 2.0%;
-        }
+.festival-title {
+  left: 3%;
+}
 
-        .festival-title span {
-          display: block;
-          margin-top: 0.35cqw;
-          font-family: Arial, sans-serif;
-          font-size: 1.3cqw;
-          font-weight: 800;
-          letter-spacing: 0.05cqw;
-          line-height: 1;
-          color: #fff500;
-        }
+.battle-title {
+  right: 3%;
+  text-align: right;
+}
 
-        .battle-title {
-          top: 1.6%;
-          right: 2.0%;
-          text-align: right;
-          font-size: 3.6cqw;
-          line-height: 0.85;
-        }
+.festival-title span,
+.battle-title span {
+  display: block;
+  margin-top: 0.6cqw;
+  font-family: "Arial Black", Impact, sans-serif;
+  font-size: 1.4cqw;
+  font-weight: 900;
+  letter-spacing: 0.1cqw;
+  color: #ffffff;
+}
 
-        .battle-title span {
-          display: block;
-          margin-top: 0.35cqw;
-          font-family: Arial, sans-serif;
-          font-size: 1.3cqw;
-          font-weight: 800;
-          letter-spacing: 0.05cqw;
-          line-height: 1;
-          color: #fff500;
-        }
+/* ── Logo ── */
+.logo {
+  position: absolute;
+  top: 6%;
+  left: 50%;
+  width: auto;
+  height: 28%;
+  transform: translateX(-50%);
+  z-index: 4;
+  filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.25));
+}
 
-        .logo {
-          position: absolute;
-          top: 1.2%;
-          left: 50%;
-          width: auto;
-          height: 12.5%;
-          transform: translateX(-50%);
-          filter: drop-shadow(0 4px 8px rgb(80 12 10 / 30%));
-          z-index: 2;
-        }
+.logo svg {
+  width: auto;
+  height: 100%;
+}
 
-        .logo svg {
-          width: auto;
-          height: 100%;
-        }
+/* ── "FINALE" ── */
+.finale {
+  position: absolute;
+  top: 48%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 4;
+  font-family: "Arial Black", Impact, sans-serif;
+  font-size: 2.2cqw;
+  font-weight: 900;
+  letter-spacing: 0.1cqw;
+  text-transform: uppercase;
+  color: #ffffff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
 
-        .stage-column-title {
-          position: absolute;
-          z-index: 2;
-          font-family: Impact, "Arial Narrow", sans-serif;
-          font-size: 1.25cqw;
-          letter-spacing: 0.06cqw;
-          color: #fff;
-          text-transform: uppercase;
-          text-align: center;
-          background: rgba(0, 0, 0, 0.28);
-          padding: 0.22cqw 0.5cqw;
-          border-radius: 0.3cqw;
-          border: 1px solid rgba(255, 255, 255, 0.16);
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 0.4cqw;
-        }
+/* ═══════════════════════════════════════════════════════
+   MATCH BOX — Formes pures, sans arrondi ni ombre complexe
+   ═══════════════════════════════════════════════════════ */
+.match-box {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  /* Forme rectangulaire nette */
+  border-radius: 0;
+  border: none;
+  transition: transform 0.15s ease, filter 0.15s ease;
+  overflow: hidden;
+  z-index: 2;
+  text-decoration: none;
+  /* Ombre très légère pour décoller du fond */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
 
-        .match-box {
-          position: absolute;
-          display: flex;
-          align-items: center;
-          border-radius: 0.3cqw;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
-          transition: transform 0.15s ease, box-shadow 0.15s ease;
-          overflow: hidden;
-          z-index: 2;
-        }
+.match-box:hover {
+  transform: scale(1.02);
+  filter: brightness(1.1);
+  z-index: 5;
+}
 
-        .match-box:hover {
-          transform: translateY(-1px);
-          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.35);
-        }
+/* ── Jaune équipe A ── */
+.match-box.yellow {
+  background: #fff200 !important;
+  /* Jaune vif */
+  color: #0f172a;
+}
 
-        .match-box.yellow {
-          background-color: #fff500 !important;
-          color: #0f172a;
-        }
+/* ── Bleu équipe B ── */
+.match-box.blue {
+  background: #2b11e0 !important;
+  /* Bleu électrique */
+  color: #ffffff;
+}
 
-        .match-box.blue {
-          background-color: #2b11e0 !important;
-          color: #ffffff;
-        }
+/* ── Slot vide ── */
+.match-box.empty {
+  background: transparent !important;
+  border: 2px dashed rgba(255, 255, 255, 0.2);
+  pointer-events: none;
+  box-shadow: none;
+}
 
-        .match-box.empty {
-          background-color: rgba(255, 255, 255, 0.07) !important;
-          border: 1px dashed rgba(255, 255, 255, 0.22);
-          pointer-events: none;
-        }
+/* ── Badge VS ── */
+.versus-badge {
+  position: absolute;
+  z-index: 6;
+  font-family: "Arial Black", Impact, sans-serif;
+  font-size: 0.9cqw;
+  font-weight: 900;
+  color: #ffffff;
+  /* Sur l'affiche, le VS est juste du texte blanc, pas de fond */
+  background: transparent;
+  border: none;
+  padding: 0;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  letter-spacing: 0.05cqw;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
 
-        .versus-badge {
-          position: absolute;
-          z-index: 3;
-          font-family: Arial, sans-serif;
-          font-size: 0.72cqw;
-          font-weight: 900;
-          color: #fff;
-          background: #7a1f14;
-          border: 1px solid rgba(255, 255, 255, 0.35);
-          border-radius: 0.2cqw;
-          padding: 0.05cqw 0.35cqw;
-          transform: translate(-50%, -50%);
-          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-          pointer-events: none;
-          letter-spacing: 0.04cqw;
-        }
+/* ── Ligne joueur ── */
+.player-row {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.8cqw;
+  overflow: hidden;
+}
 
-        @media (max-aspect-ratio: 4/5) {
-          .board {
-            width: 100%;
-            aspect-ratio: 9 / 16;
-          }
+.player-name-text {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+  font-size: 0.95cqw;
+  font-weight: 900;
+}
 
-          .festival-title,
-          .battle-title {
-            font-size: 8cqw;
-          }
+.player-score {
+  flex-shrink: 0;
+  font-size: 0.85cqw;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  padding-left: 0.5cqw;
+}
 
-          .festival-title span {
-            font-size: 3cqw;
-          }
+/* ═══════════════════════════════════════════════════════
+   RESPONSIVE (Portrait)
+   ═══════════════════════════════════════════════════════ */
+@media (max-aspect-ratio: 4/5) {
+  .header-block {
+    width: 45%;
+    height: 35%;
+  }
 
-          .logo {
-            top: 16%;
-            width: 38%;
-            height: 20%;
-          }
+  .festival-title,
+  .battle-title {
+    font-size: 5cqw;
+    top: 3%;
+  }
 
-          .finale {
-            top: 40%;
-            font-size: 5cqw;
-          }
+  .festival-title span,
+  .battle-title span {
+    font-size: 2.2cqw;
+  }
 
-          .match-box {
-            width: 18%;
-            height: 3.5%;
-            border-radius: 0.6cqw;
-          }
+  .logo {
+    top: 8%;
+    height: 20%;
+  }
 
-          .versus {
-            font-size: 3cqw;
-          }
-        }
+  .finale {
+    top: 38%;
+    font-size: 3.5cqw;
+  }
+
+  .versus-badge {
+    font-size: 1.8cqw;
+  }
+
+  .player-name-text {
+    font-size: 1.6cqw;
+  }
+
+  .player-score {
+    font-size: 1.4cqw;
+  }
+}
+
+@keyframes logo-spin-y {
+  from {
+    transform: rotateY(0deg);
+  }
+
+  to {
+    transform: rotateY(360deg);
+  }
+}
+
+@keyframes logoPulse {
+
+  0%,
+  100% {
+    filter:
+      drop-shadow(0 4px 8px rgb(80 12 10 / 40%)) drop-shadow(0 0 1cqw rgba(255, 245, 0, 0.35));
+  }
+
+  50% {
+    filter:
+      drop-shadow(0 4px 10px rgb(80 12 10 / 50%)) drop-shadow(0 0 2cqw rgba(255, 245, 0, 0.6));
+  }
+}
+
+.logo svg {
+  width: auto;
+  height: 100%;
+}
+
+/* ── "FINALE" central ── */
+.finale {
+  position: absolute;
+  top: 38%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 4;
+  font-family: Impact, "Arial Narrow", sans-serif;
+  font-size: 1.6cqw;
+  font-weight: 900;
+  letter-spacing: 0.5cqw;
+  text-transform: uppercase;
+  color: #fff500;
+  text-shadow:
+    0 0 0.8cqw rgba(255, 245, 0, 0.7),
+    0 2px 4px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+}
+
+/* ── Titres de colonnes ── */
+.stage-column-title {
+  position: absolute;
+  z-index: 3;
+  font-family: Arial, sans-serif;
+  font-size: 0.85cqw;
+  font-weight: 900;
+  letter-spacing: 0.16cqw;
+  color: #fff;
+  text-transform: uppercase;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 0.32cqw 0.7cqw;
+  border-radius: 0.25cqw;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4cqw;
+}
+
+/* ═══════════════════════════════════════════════════════
+   MATCH BOX — tes couleurs, interactions modernes
+   ═══════════════════════════════════════════════════════ */
+.match-box {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  border-radius: 0.45cqw;
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.30),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  transition:
+    transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.22s ease;
+  overflow: hidden;
+  z-index: 2;
+  text-decoration: none;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  will-change: transform;
+}
+
+/* Reflet au hover */
+.match-box::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, rgba(255, 255, 255, 0.22) 0%, transparent 45%);
+  opacity: 0;
+  transition: opacity 0.22s ease;
+  pointer-events: none;
+}
+
+.match-box:hover {
+  transform: translateY(-2px) scale(1.03);
+  z-index: 5;
+}
+
+.match-box:hover::before {
+  opacity: 1;
+}
+
+/* ── Jaune équipe A — #fff500 conservé ── */
+.match-box.yellow {
+  background: #fff500 !important;
+  color: #0f172a;
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.30),
+    0 0 0.7cqw rgba(255, 245, 0, 0.30),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.match-box.yellow:hover {
+  box-shadow:
+    0 8px 20px rgba(0, 0, 0, 0.45),
+    0 0 1.8cqw rgba(255, 245, 0, 0.75),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+/* ── Bleu équipe B — #2b11e0 conservé ── */
+.match-box.blue {
+  background: #2b11e0 !important;
+  color: #ffffff;
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.30),
+    0 0 0.7cqw rgba(43, 17, 224, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.match-box.blue:hover {
+  box-shadow:
+    0 8px 20px rgba(0, 0, 0, 0.45),
+    0 0 1.8cqw rgba(99, 102, 241, 0.75),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28);
+}
+
+/* ── Slot vide ── */
+.match-box.empty {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px dashed rgba(255, 255, 255, 0.20);
+  pointer-events: none;
+  box-shadow: none;
+}
+
+/* ── Badge VS — #7a1f14 conservé ── */
+.versus-badge {
+  position: absolute;
+  z-index: 6;
+  font-family: Arial, sans-serif;
+  font-size: 0.68cqw;
+  font-weight: 900;
+  color: #fff;
+  background: #7a1f14;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 0.2cqw;
+  padding: 0.05cqw 0.35cqw;
+  transform: translate(-50%, -50%);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.35),
+    0 0 0.6cqw rgba(255, 245, 0, 0.35);
+  pointer-events: none;
+  letter-spacing: 0.04cqw;
+}
+
+/* ── Ligne joueur ── */
+.player-row {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4cqw;
+  padding: 0 0.6cqw;
+  overflow: hidden;
+}
+
+.player-name-text {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+  font-size: 0.95cqw;
+  font-weight: 900;
+  letter-spacing: -0.02cqw;
+}
+
+.player-score {
+  flex-shrink: 0;
+  border-radius: 0.25cqw;
+  padding: 0.12cqw 0.4cqw;
+  font-size: 0.75cqw;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+/* ── Gagnant : halo SANS changer la couleur de fond ── */
+.match-box.winner-yellow {
+  box-shadow:
+    0 0 1.4cqw rgba(255, 245, 0, 0.85),
+    0 0 2.6cqw rgba(255, 245, 0, 0.40),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+  outline: 2px solid #fff500;
+  outline-offset: 2px;
+}
+
+.match-box.winner-blue {
+  box-shadow:
+    0 0 1.4cqw rgba(99, 102, 241, 0.85),
+    0 0 2.6cqw rgba(43, 17, 224, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.30) !important;
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+}
+
+/* ── Statut OPEN — pulse orange ── */
+.match-box.status-open {
+  outline: 2px solid #fb923c;
+  outline-offset: 2px;
+  animation: livePulse 1.8s ease-in-out infinite;
+}
+
+@keyframes livePulse {
+
+  0%,
+  100% {
+    outline-color: #fb923c;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.30), 0 0 1cqw rgba(251, 146, 60, 0.55);
+  }
+
+  50% {
+    outline-color: #fdba74;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.30), 0 0 2.2cqw rgba(251, 146, 60, 0.95);
+  }
+}
+
+/* ── Statut CLOSED — vert ── */
+.match-box.status-closed {
+  outline: 2px solid #10b981;
+  outline-offset: 2px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.30), 0 0 1cqw rgba(16, 185, 129, 0.50);
+}
+
+/* ── Finale terminée — glow doré ── */
+.match-box.status-final-finished {
+  outline: 2px solid #fbbf24;
+  outline-offset: 3px;
+  animation: finaleGlow 2.4s ease-in-out infinite;
+}
+
+@keyframes finaleGlow {
+
+  0%,
+  100% {
+    box-shadow: 0 0 1.2cqw rgba(251, 191, 36, 0.55), 0 0 2.2cqw rgba(251, 191, 36, 0.25);
+  }
+
+  50% {
+    box-shadow: 0 0 2.2cqw rgba(251, 191, 36, 0.95), 0 0 3.8cqw rgba(255, 245, 0, 0.45);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   RESPONSIVE — portrait bracket (le JS gère le ratio 9/16)
+   ═══════════════════════════════════════════════════════ */
+@media (max-aspect-ratio: 4/5) {
+
+  .festival-title,
+  .battle-title {
+    font-size: 6cqw;
+  }
+
+  .festival-title span,
+  .battle-title span {
+    font-size: 2.2cqw;
+    letter-spacing: 0.5cqw;
+  }
+
+  .logo {
+    top: 8%;
+    height: 10%;
+  }
+
+  .finale {
+    top: 36%;
+    font-size: 3.2cqw;
+    letter-spacing: 0.8cqw;
+  }
+
+  .versus-badge {
+    font-size: 1.6cqw;
+    padding: 0.15cqw 0.8cqw;
+  }
+
+  .player-name-text {
+    font-size: 1.8cqw;
+  }
+
+  .player-score {
+    font-size: 1.5cqw;
+    padding: 0.2cqw 0.7cqw;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   ACCESSIBILITÉ — Réduction des animations (global)
+   ═══════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+
+  .judge-range::-webkit-slider-thumb,
+  .judge-range::-moz-range-thumb,
+  .criterion-slider::-webkit-slider-thumb,
+  .criterion-slider::-moz-range-thumb {
+    transition: none;
+  }
+
+  .logo,
+  .match-box,
+  .match-box.status-open,
+  .match-box.status-final-finished {
+    animation: none !important;
+    transition: none !important;
+  }
+}
