@@ -292,7 +292,7 @@ export function ResultsScreen({
                         href={tournamentId ? `/bracket?tournamentId=${tournamentId}` : '/bracket'}
                         className="text-[11px] font-extrabold uppercase tracking-wide text-white/70 hover:text-white"
                     >
-                        ← Bracket
+                        ← Tableau
                     </Link>
                 </div>
 
@@ -434,11 +434,15 @@ export function ResultsScreen({
                                             // 1. Si le match n'est pas 100% terminé, on garde la confidentialité (✅ ou —)
                                             if (!matchComplete) {
                                                 return (
-                                                    <div key={j.id} className="flex justify-center">
+                                                    <div key={j.id} className="flex justify-center items-center">
                                                         {hasVoted ? (
-                                                            <span className="text-[16px]">✅</span>
+                                                            <span className="flex items-center justify-center w-10 h-10 rounded-full bg-emerald-500/15 text-2xl shadow-sm">
+                                                                ✅
+                                                            </span>
                                                         ) : (
-                                                            <span className="text-[14px] font-bold text-white/40">—</span>
+                                                            <span className="flex items-center justify-center w-10 h-10 rounded-full bg-white/5 text-xl font-bold text-white/40">
+                                                                —
+                                                            </span>
                                                         )}
                                                     </div>
                                                 )
