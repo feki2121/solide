@@ -54,61 +54,62 @@ type MatchBoxProps = {
     color: 'yellow' | 'blue'
 }
 
-// Centres Y parfaits pour un entonnoir équilibré
-const COL1_Y = [26, 42, 58, 74]
-const COL2_Y = [34, 66]
+// Centres Y parfaits pour un entonnoir équilibré (remplissage vertical complet)
+const COL1_Y = [12, 32, 68, 88]
+const COL2_Y = [22, 78]
 const COL3_Y = [50]
-const COL4_Y = [34, 66]
-const COL5_Y = [26, 42, 58, 74]
+const COL4_Y = [22, 78]
+const COL5_Y = [12, 32, 68, 88]
 
-const BOX_W = 11.5
-const BOX_H = 6.8
-const CENTER_BOX_W = 8.5 // Plus petit au centre pour éviter le chevauchement
+const BOX_W = 12
+const BOX_H = 7
+const CENTER_BOX_W = 10
+const HALF = (BOX_H + 1.2) / 2 // 4.1 → espacement symétrique entre les 2 box d'un match
 
 const MATCH_BOXES: MatchBoxProps[] = [
-    // COLONNE 1 (1/8 de finale gauche) : x = 9%
-    { x: 9, y: COL1_Y[0] - 4, color: 'yellow' },
-    { x: 9, y: COL1_Y[0] + 4, color: 'blue' },
-    { x: 9, y: COL1_Y[1] - 4, color: 'yellow' },
-    { x: 9, y: COL1_Y[1] + 4, color: 'blue' },
-    { x: 9, y: COL1_Y[2] - 4, color: 'yellow' },
-    { x: 9, y: COL1_Y[2] + 4, color: 'blue' },
-    { x: 9, y: COL1_Y[3] - 4, color: 'yellow' },
-    { x: 9, y: COL1_Y[3] + 4, color: 'blue' },
+    // COLONNE 1 (1/8 gauche) : x = 12%
+    { x: 12, y: COL1_Y[0] - HALF, color: 'yellow' },
+    { x: 12, y: COL1_Y[0] + HALF, color: 'blue' },
+    { x: 12, y: COL1_Y[1] - HALF, color: 'yellow' },
+    { x: 12, y: COL1_Y[1] + HALF, color: 'blue' },
+    { x: 12, y: COL1_Y[2] - HALF, color: 'yellow' },
+    { x: 12, y: COL1_Y[2] + HALF, color: 'blue' },
+    { x: 12, y: COL1_Y[3] - HALF, color: 'yellow' },
+    { x: 12, y: COL1_Y[3] + HALF, color: 'blue' },
 
-    // COLONNE 2 (1/4 de finale gauche) : x = 27%
-    { x: 27, y: COL2_Y[0] - 4, color: 'yellow' },
-    { x: 27, y: COL2_Y[0] + 4, color: 'blue' },
-    { x: 27, y: COL2_Y[1] - 4, color: 'yellow' },
-    { x: 27, y: COL2_Y[1] + 4, color: 'blue' },
+    // COLONNE 2 (1/4 gauche) : x = 26%
+    { x: 26, y: COL2_Y[0] - HALF, color: 'yellow' },
+    { x: 26, y: COL2_Y[0] + HALF, color: 'blue' },
+    { x: 26, y: COL2_Y[1] - HALF, color: 'yellow' },
+    { x: 26, y: COL2_Y[1] + HALF, color: 'blue' },
 
     // COLONNE 3 (Demi-finale gauche) : x = 34%
-    { x: 34, y: COL3_Y[0] - 4, color: 'yellow' },
-    { x: 34, y: COL3_Y[0] + 4, color: 'blue' },
+    { x: 34, y: COL3_Y[0] - HALF, color: 'yellow' },
+    { x: 34, y: COL3_Y[0] + HALF, color: 'blue' },
 
     // COLONNE 4 (Demi-finale droite) : x = 66%
-    { x: 66, y: COL3_Y[0] - 4, color: 'yellow' },
-    { x: 66, y: COL3_Y[0] + 4, color: 'blue' },
+    { x: 66, y: COL3_Y[0] - HALF, color: 'yellow' },
+    { x: 66, y: COL3_Y[0] + HALF, color: 'blue' },
 
-    // COLONNE 5 (1/4 de finale droite) : x = 73%
-    { x: 73, y: COL4_Y[0] - 4, color: 'yellow' },
-    { x: 73, y: COL4_Y[0] + 4, color: 'blue' },
-    { x: 73, y: COL4_Y[1] - 4, color: 'yellow' },
-    { x: 73, y: COL4_Y[1] + 4, color: 'blue' },
+    // COLONNE 5 (1/4 droite) : x = 74%
+    { x: 74, y: COL4_Y[0] - HALF, color: 'yellow' },
+    { x: 74, y: COL4_Y[0] + HALF, color: 'blue' },
+    { x: 74, y: COL4_Y[1] - HALF, color: 'yellow' },
+    { x: 74, y: COL4_Y[1] + HALF, color: 'blue' },
 
-    // COLONNE 6 (1/8 de finale droite) : x = 91%
-    { x: 91, y: COL5_Y[0] - 4, color: 'yellow' },
-    { x: 91, y: COL5_Y[0] + 4, color: 'blue' },
-    { x: 91, y: COL5_Y[1] - 4, color: 'yellow' },
-    { x: 91, y: COL5_Y[1] + 4, color: 'blue' },
-    { x: 91, y: COL5_Y[2] - 4, color: 'yellow' },
-    { x: 91, y: COL5_Y[2] + 4, color: 'blue' },
-    { x: 91, y: COL5_Y[3] - 4, color: 'yellow' },
-    { x: 91, y: COL5_Y[3] + 4, color: 'blue' },
+    // COLONNE 6 (1/8 droite) : x = 88%
+    { x: 88, y: COL5_Y[0] - HALF, color: 'yellow' },
+    { x: 88, y: COL5_Y[0] + HALF, color: 'blue' },
+    { x: 88, y: COL5_Y[1] - HALF, color: 'yellow' },
+    { x: 88, y: COL5_Y[1] + HALF, color: 'blue' },
+    { x: 88, y: COL5_Y[2] - HALF, color: 'yellow' },
+    { x: 88, y: COL5_Y[2] + HALF, color: 'blue' },
+    { x: 88, y: COL5_Y[3] - HALF, color: 'yellow' },
+    { x: 88, y: COL5_Y[3] + HALF, color: 'blue' },
 
-    // COLONNE 7 (FINALE) : x = 50%
-    { x: 50, y: 50 - 4, color: 'yellow' },
-    { x: 50, y: 50 + 4, color: 'blue' },
+    // COLONNE 7 (FINALE) : x = 50%, centre abaissé à 56%
+    { x: 50, y: 56 - HALF, color: 'yellow' },
+    { x: 50, y: 56 + HALF, color: 'blue' },
 ]
 
 const MATCH_SLOT_PAIRS: MatchBoxProps[][] = [
@@ -195,7 +196,7 @@ export default function BracketContent() {
     const hasAny = matches.length > 0
 
     return (
-        <div className="fixed inset-0 overflow-hidden bg-[#a92f20]">
+        <div className="fixed inset-0 overflow-hidden bg-[#fe0000]">
             {error && (
                 <div className="absolute left-0 right-0 top-0 z-30 border-b border-rose-200 bg-[#fff1f2] px-3 py-2 text-xs font-semibold text-[#dc2626]">
                     {error}
@@ -203,7 +204,7 @@ export default function BracketContent() {
             )}
 
             {loading ? (
-                <div className="flex h-full w-full items-center justify-center bg-[#a92f20]">
+                <div className="flex h-full w-full items-center justify-center bg-[#fe0000]">
                     <div className="rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-sm font-medium text-white/80">
                         Chargement du tableau…
                     </div>
@@ -303,8 +304,7 @@ function BracketBoard({ matches, role }: { matches: Match[]; role: UserRole }) {
     return (
         <div
             ref={containerRef}
-            className="relative flex h-full w-full items-center justify-center overflow-hidden bg-[#a92f20]"
-        >
+            className="relative flex h-full w-full items-center justify-center overflow-hidden bg-[#fe0000]"        >
             <main
                 ref={festivalRef}
                 className="festival"
@@ -317,7 +317,7 @@ function BracketBoard({ matches, role }: { matches: Match[]; role: UserRole }) {
                     {/* Ajout du bloc de fond central */}
                     <div className="header-block" />
 
-                    <header className="festival-title">
+                    {/* <header className="festival-title">
                         <div>PHILOSO</div>
                         <div>FLOOR</div>
                         <span>FESTIVAL</span>
@@ -327,13 +327,56 @@ function BracketBoard({ matches, role }: { matches: Match[]; role: UserRole }) {
                         <div>BREAKING</div>
                         <div>BATTLE</div>
                         <span>CHAMPIONSHIP</span>
-                    </header>
+                    </header> */}
 
                     {/* Logo */}
-                    <div className="logo">
-                        <svg viewBox="0 0 280 300" role="img" aria-label="Logo du festival">
+                    <div
+                        className="logo"
+                        style={{
+                            perspective: '1200px',
+                        }}
+                    >
+                        <svg
+                            viewBox="0 0 300 300"
+                            role="img"
+                            aria-label="Logo du festival"
+                            style={{
+                                width: '100%',
+                                height: '100%',
+                                animation: 'logo-spin-y 8s linear infinite',
+                                transformStyle: 'preserve-3d',
+                                backfaceVisibility: 'visible',
+                                willChange: 'transform',
+                                filter: 'drop-shadow(0 12px 8px rgba(60,0,0,0.2))',
+                            }}
+                        >
                             <path
-                                d="M40 15 C10 15 4 45 28 68 L100 125 C116 138 113 150 95 164 L29 218 C2 241 14 274 46 274 L234 274 C266 274 278 241 251 218 L185 164 C167 150 164 138 180 125 L252 68 C276 45 270 15 240 15 Z M140 34 C170 34 185 60 172 91 L156 130 C150 146 151 160 164 179 L180 204 C195 229 176 255 140 255 C104 255 85 229 100 204 L116 179 C129 160 130 146 124 130 L108 91 C95 60 110 34 140 34 Z"
+                                d="
+                M 65 24
+                C 35 24, 20 42, 30 66
+                C 39 86, 67 101, 98 116
+                C 117 125, 117 132, 98 141
+                C 64 157, 28 177, 27 204
+                C 26 231, 48 249, 78 249
+                L 222 249
+                C 252 249, 274 231, 273 204
+                C 272 177, 236 157, 202 141
+                C 183 132, 183 125, 202 116
+                C 233 101, 261 86, 270 66
+                C 280 42, 265 24, 235 24
+                Z
+
+                M 150 39
+                C 178 39, 192 59, 185 83
+                C 180 101, 165 119, 166 139
+                C 167 162, 184 187, 181 207
+                C 178 225, 166 233, 150 233
+                C 134 233, 122 225, 119 207
+                C 116 187, 133 162, 134 139
+                C 135 119, 120 101, 115 83
+                C 108 59, 122 39, 150 39
+                Z
+            "
                                 fill="white"
                                 fillRule="evenodd"
                             />
@@ -378,6 +421,7 @@ function MatchSlotPair({
         width: `${width}%`,
         height: `${BOX_H}%`,
         transform: 'translate(-50%, -50%)',
+        transformOrigin: 'center center',
     }
 
     const vsX = slotA.x
@@ -466,30 +510,20 @@ function PlayerRow({
     color: 'yellow' | 'blue'
 }) {
     const rawName = candidate?.name ?? null
-    const display =
+    const isTbd =
         !rawName || /^(tbd|to be determined|à définir|en attente|pending)$/i.test(rawName)
-            ? '??'
-            : rawName
+    const display = isTbd ? '??' : rawName!
 
     const isYellow = color === 'yellow'
 
     return (
-        <div className="player-row">
+        <div className={`player-row ${isTbd ? 'player-tbd' : ''}`}>
             <span className="player-name-text" title={display}>
                 {display}
             </span>
 
-            {score != null && (
-                <span
-                    className="player-score"
-                    style={{
-                        background: isYellow ? '#0f172a' : 'rgba(255,255,255,0.18)',
-                        color: '#fff',
-                        boxShadow: isWinner
-                            ? '0 0 0 1px #fbbf24, 0 0 0.6cqw rgba(251,191,36,0.7)'
-                            : undefined,
-                    }}
-                >
+            {!isTbd && score != null && (
+                <span className={`player-score ${isYellow ? 'score-dark' : 'score-light'}`}>
                     {score.toFixed(0)}
                 </span>
             )}

@@ -47,9 +47,21 @@ const POLL_INTERVAL = 3000
  * Vérifie que TOUS les jurys assignés ont voté pour ce round.
  */
 function isRoundComplete(round: Round, assignedJudgeIds: string[]): boolean {
-    if (assignedJudgeIds.length === 0) return false
-    const votersSet = new Set(round.votes.map((v) => v.judgeId))
+    if (round.status === 'CLOSED') return true
+    if (!assignedJudgeIds || assignedJudgeIds.length === 0) return false
+    const votes = round.votes ?? []
+    if (votes.length === 0) return false
+    const votersSet = new Set(votes.map((v) => v.judgeId))
     return assignedJudgeIds.every((judgeId) => votersSet.has(judgeId))
+}
+
+
+/**
+ * Vérifie que TOUS les rounds du match sont terminés.
+ */
+function isMatchComplete(match: MatchDetail, assignedJudgeIds: string[]): boolean {
+    if (match.rounds.length === 0) return false
+    return match.rounds.every(round => isRoundComplete(round, assignedJudgeIds))
 }
 
 /**
@@ -61,8 +73,11 @@ function winnerOfRound(round: Round, match: MatchDetail): string | null {
     if (round.result?.winnerId) return round.result.winnerId
     if (!round.votes || round.votes.length === 0) return null
 
+    const visibleVotes = round.votes.filter((v) => v.criterion !== 'HIDDEN')
+    if (visibleVotes.length === 0) return null
+
     const byJudge = new Map<string, number[]>()
-    for (const v of round.votes) {
+    for (const v of visibleVotes) {
         byJudge.set(v.judgeId, [...(byJudge.get(v.judgeId) ?? []), v.value])
     }
 
@@ -97,6 +112,9 @@ export function ResultsScreen({
     matchId: string
     tournamentId?: string
 }) {
+    const requestedForRoundCount = useRef<number | null>(null)
+    const isRequestingExtraRound = useRef(false)
+
     const [match, setMatch] = useState<MatchDetail | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
@@ -128,6 +146,7 @@ export function ResultsScreen({
         }
     }, [matchId])
 
+    // 1. Chargement initial + polling
     useEffect(() => {
         mountedRef.current = true
         void load()
@@ -138,15 +157,63 @@ export function ResultsScreen({
         }
     }, [load])
 
+    // 2. Rechargement au focus
     useEffect(() => {
         const onFocus = () => void load()
         window.addEventListener('focus', onFocus)
         return () => window.removeEventListener('focus', onFocus)
     }, [load])
 
+    // 3. Détection de fin de match et déclenchement du round supplémentaire
+    useEffect(() => {
+        if (!match) return
+
+        const assignedJudgeIds = match.assignedJudges.map(j => j.id)
+        const isDone = isMatchComplete(match, assignedJudgeIds)
+        const isEven = match.rounds.length > 0 && match.rounds.length % 2 === 0
+
+        // Task 1: logs des valeurs isDone et isEven
+        console.log('[ResultsScreen] isDone:', isDone, '| isEven:', isEven, '| rounds:', match.rounds.length)
+
+        if (
+            isDone &&
+            isEven &&
+            requestedForRoundCount.current !== match.rounds.length &&
+            !isRequestingExtraRound.current
+        ) {
+            const currentRoundCount = match.rounds.length
+            requestedForRoundCount.current = currentRoundCount
+            isRequestingExtraRound.current = true
+
+            console.log(`🟢 [DEBUG] Match terminé avec ${currentRoundCount} rounds (pair), création du round ${currentRoundCount + 1}...`)
+
+            fetch(`/api/matches/${matchId}/check-extra-round`, { method: 'POST' })
+                .then(async (res) => {
+                    const data = await res.json()
+                    // Task 1: log de la réponse du fetch
+                    console.log('🟢 [DEBUG] Réponse check-extra-round fetch :', data)
+
+                    if (data.added || data.reason?.includes('déjà') || data.reason?.includes('impair')) {
+                        await load()
+                    } else {
+                        // En cas de refus temporaire, autoriser un nouvel essai
+                        requestedForRoundCount.current = null
+                    }
+                })
+                .catch((err) => {
+                    console.error('🔴 [DEBUG] Erreur check-extra-round fetch :', err)
+                    // En cas d'erreur réseau, autoriser un nouvel essai
+                    requestedForRoundCount.current = null
+                })
+                .finally(() => {
+                    isRequestingExtraRound.current = false
+                })
+        }
+    }, [match, matchId, load])
+
     if (loading && !match) {
         return (
-            <main className="flex h-screen w-full items-center justify-center overflow-hidden bg-[#ad3021] text-white">
+            <main className="flex h-screen w-full items-center justify-center overflow-hidden bg-[#fe0000] text-white">
                 <div className="flex items-center gap-3">
                     <RefreshCw className="size-5 animate-spin text-[#f0e6d9]" />
                     <span className="text-sm font-bold uppercase">Chargement…</span>
@@ -157,7 +224,7 @@ export function ResultsScreen({
 
     if (error || !match) {
         return (
-            <main className="flex h-screen w-full flex-col items-center justify-center gap-4 overflow-hidden bg-[#ad3021] p-6 text-white">
+            <main className="flex h-screen w-full flex-col items-center justify-center gap-4 overflow-hidden bg-[#fe0000] p-6 text-white">
                 <p className="text-lg font-bold uppercase text-[#f0e6d9]">
                     {error ?? 'Match introuvable'}
                 </p>
@@ -176,22 +243,26 @@ export function ResultsScreen({
     const judges = match.assignedJudges
     const assignedJudgeIds = judges.map((j) => j.id)
 
-    // ────────── Score final (logique inchangée) ──────────
+    const matchComplete = isMatchComplete(match, assignedJudgeIds)
+
+    // ────────── Score final ──────────
     let winsA = 0
     let winsB = 0
 
-    for (const round of match.rounds) {
-        if (!isRoundComplete(round, assignedJudgeIds)) continue
-        const winnerId = winnerOfRound(round, match)
-        if (!winnerId) continue
-        if (winnerId === match.candidateA?.id) winsA += 1
-        else if (winnerId === match.candidateB?.id) winsB += 1
+    // On ne calcule les scores finaux que si le match est 100% terminé
+    if (matchComplete) {
+        for (const round of match.rounds) {
+            const winnerId = winnerOfRound(round, match)
+            if (!winnerId) continue
+            if (winnerId === match.candidateA?.id) winsA += 1
+            else if (winnerId === match.candidateB?.id) winsB += 1
+        }
     }
 
     return (
-        <main className="relative flex h-screen w-full items-center justify-center overflow-hidden bg-[#ad3021] text-white">
+        <main className="relative flex h-screen w-full items-center justify-center overflow-hidden bg-[#fe0000] text-white">
             {/* Arrière-plan */}
-            <div className="absolute inset-x-[14.7%] top-[2.2%] bottom-0 bg-[#a82920]/55" />
+            <div className="absolute inset-x-[14.7%] top-[2.2%] bottom-0 bg-[#fe0000]/55" />
 
             <div className="relative z-10 mx-auto flex h-full w-full max-w-[1440px] flex-col items-center px-4 py-5 sm:px-8">
                 {/* En-tête gauche */}
@@ -355,14 +426,28 @@ export function ResultsScreen({
 
                                         {/* Cellules par juge */}
                                         {judges.map((j) => {
-                                            const judgeVotes = round.votes.filter(
+                                            const judgeVotes = (round.votes ?? []).filter(
                                                 (v) => v.judgeId === j.id
                                             )
-                                            const avg =
-                                                judgeVotes.length > 0
-                                                    ? judgeVotes.reduce((s, v) => s + v.value, 0) /
-                                                    judgeVotes.length
-                                                    : null
+                                            const hasVoted = judgeVotes.length > 0
+
+                                            // 1. Si le match n'est pas 100% terminé, on garde la confidentialité (✅ ou —)
+                                            if (!matchComplete) {
+                                                return (
+                                                    <div key={j.id} className="flex justify-center">
+                                                        {hasVoted ? (
+                                                            <span className="text-[16px]">✅</span>
+                                                        ) : (
+                                                            <span className="text-[14px] font-bold text-white/40">—</span>
+                                                        )}
+                                                    </div>
+                                                )
+                                            }
+
+                                            // 2. Si le match EST terminé, on révèle les couleurs
+                                            const avg = hasVoted
+                                                ? judgeVotes.reduce((s, v) => s + v.value, 0) / judgeVotes.length
+                                                : null
 
                                             const color: 'blue' | 'orange' | null =
                                                 avg === null
@@ -374,10 +459,7 @@ export function ResultsScreen({
                                                             : null
 
                                             return (
-                                                <div
-                                                    key={j.id}
-                                                    className="flex justify-center"
-                                                >
+                                                <div key={j.id} className="flex justify-center">
                                                     {color ? (
                                                         <ScoreBox color={color} />
                                                     ) : (
@@ -407,7 +489,7 @@ export function ResultsScreen({
                                     {nameA}
                                 </span>
                                 <span className="text-[21px] font-bold sm:text-[27px]">
-                                    {winsA}
+                                    {matchComplete ? winsA : '-'}
                                 </span>
                             </div>
 
@@ -420,7 +502,7 @@ export function ResultsScreen({
                                     {nameB}
                                 </span>
                                 <span className="text-[21px] font-bold sm:text-[27px]">
-                                    {winsB}
+                                    {matchComplete ? winsB : '-'}
                                 </span>
                             </div>
                         </div>

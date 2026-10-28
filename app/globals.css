@@ -590,7 +590,7 @@
   justify-content: center;
   overflow: hidden;
   /* Le rouge brique exact de l'affiche */
-  background: #a92f20;
+  background: #FE0000;
   font-family: "Arial Black", Impact, sans-serif;
   transform-origin: center center;
   will-change: transform;
@@ -611,55 +611,80 @@
   top: 0;
   left: 50%;
   transform: translateX(-50%);
-  width: 26%;
-  height: 42%;
-  background: #be3926;
-  /* Rouge légèrement plus clair pour détacher le logo */
+  width: 30%;
+  height: 48%;
+  background: radial-gradient(ellipse at center,
+      rgba(255, 70, 40, 0.55) 0%,
+      rgba(254, 0, 0, 0) 70%);
   z-index: 1;
+  pointer-events: none;
 }
 
 /* ── Typographies ── */
 .festival-title,
 .battle-title {
   position: absolute;
-  z-index: 4;
-  top: 4%;
+  z-index: 3;
+  top: 0.8%;
+  /* ⬅️ était 2% : remonte le header */
   font-family: "Arial Black", Impact, sans-serif;
   font-weight: 900;
-  font-size: 3.2cqw;
-  line-height: 0.9;
-  letter-spacing: -0.05cqw;
+  font-size: 1.7cqw;
+  /* ⬅️ était 2.2 : réduit pour tenir au-dessus des cartes */
+  line-height: 0.85;
+  letter-spacing: -0.04cqw;
   text-transform: uppercase;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+
+  max-width: 13%;
+  /* ⬅️ était 14 : marge de sécurité */
+  width: max-content;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* Chaque mot reste dans le cadre */
+.festival-title>div,
+.battle-title>div {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .festival-title {
-  left: 3%;
+  left: 2.5%;
+  text-align: left;
 }
 
 .battle-title {
-  right: 3%;
+  right: 2.5%;
   text-align: right;
 }
 
 .festival-title span,
 .battle-title span {
   display: block;
-  margin-top: 0.6cqw;
+  margin-top: 0.3cqw;
+  /* ⬅️ était 0.4 : resserre */
   font-family: "Arial Black", Impact, sans-serif;
-  font-size: 1.4cqw;
+  font-size: 0.95cqw;
+  /* ⬅️ était 1.1 : réduit */
   font-weight: 900;
-  letter-spacing: 0.1cqw;
+  letter-spacing: 0.08cqw;
+  /* ⬅️ était 0.1 */
   color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ── Logo ── */
 .logo {
   position: absolute;
-  top: 6%;
+  top: 5%;
   left: 50%;
   width: auto;
-  height: 28%;
+  height: 30%;
   transform: translateX(-50%);
   z-index: 4;
   filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.25));
@@ -670,20 +695,22 @@
   height: 100%;
 }
 
-/* ── "FINALE" ── */
 .finale {
   position: absolute;
-  top: 48%;
+  top: 27%;
   left: 50%;
   transform: translateX(-50%);
   z-index: 4;
   font-family: "Arial Black", Impact, sans-serif;
-  font-size: 2.2cqw;
+  font-size: 2.4cqw;
   font-weight: 900;
-  letter-spacing: 0.1cqw;
+  letter-spacing: 0.3cqw;
   text-transform: uppercase;
-  color: #ffffff;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  color: #fff;
+  text-shadow:
+    0 0 1cqw rgba(255, 245, 0, 0.7),
+    0 2px 4px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -737,17 +764,19 @@
   position: absolute;
   z-index: 6;
   font-family: "Arial Black", Impact, sans-serif;
-  font-size: 0.9cqw;
+  font-size: 0.6cqw;
+  /* ⬅️ plus petit, était 0.95 */
   font-weight: 900;
   color: #ffffff;
-  /* Sur l'affiche, le VS est juste du texte blanc, pas de fond */
   background: transparent;
+  /* ⬅️ plus de fond sombre */
   border: none;
   padding: 0;
   transform: translate(-50%, -50%);
+  box-shadow: none;
   pointer-events: none;
   letter-spacing: 0.05cqw;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 /* ── Ligne joueur ── */
@@ -791,13 +820,18 @@
 
   .festival-title,
   .battle-title {
-    font-size: 5cqw;
-    top: 3%;
+    font-size: 4cqw;
+    /* ⬅️ était 5 : réduit */
+    top: 1.5%;
+    /* ⬅️ était 3 : remonte */
+    max-width: 30%;
+    /* ⬅️ ajouté : garde la marge en portrait */
   }
 
   .festival-title span,
   .battle-title span {
-    font-size: 2.2cqw;
+    font-size: 1.8cqw;
+    /* ⬅️ était 2.2 */
   }
 
   .logo {
@@ -852,22 +886,23 @@
   height: 100%;
 }
 
-/* ── "FINALE" central ── */
 .finale {
   position: absolute;
-  top: 38%;
+  top: 35%;
+  /* ⬅️ était 27, descend un peu */
   left: 50%;
   transform: translateX(-50%);
   z-index: 4;
-  font-family: Impact, "Arial Narrow", sans-serif;
-  font-size: 1.6cqw;
+  font-family: "Arial Black", Impact, sans-serif;
+  font-size: 2cqw;
+  /* ⬅️ légèrement plus petit */
   font-weight: 900;
-  letter-spacing: 0.5cqw;
+  letter-spacing: 0.3cqw;
   text-transform: uppercase;
-  color: #fff500;
+  color: #fff;
   text-shadow:
-    0 0 0.8cqw rgba(255, 245, 0, 0.7),
-    0 2px 4px rgba(0, 0, 0, 0.5);
+    0 0 1cqw rgba(255, 245, 0, 0.7),
+    0 2px 4px rgba(0, 0, 0, 0.6);
   pointer-events: none;
 }
 
@@ -929,7 +964,7 @@
 }
 
 .match-box:hover {
-  transform: translateY(-2px) scale(1.03);
+  transform: translate(-50%, -50%) scale(1.03);
   z-index: 5;
 }
 
@@ -939,7 +974,7 @@
 
 /* ── Jaune équipe A — #fff500 conservé ── */
 .match-box.yellow {
-  background: #fff500 !important;
+  background: #f3a000 !important;
   color: #0f172a;
   box-shadow:
     0 2px 6px rgba(0, 0, 0, 0.30),
@@ -987,7 +1022,7 @@
   font-size: 0.68cqw;
   font-weight: 900;
   color: #fff;
-  background: #7a1f14;
+  background: #FE0000;
   border: 1px solid rgba(255, 255, 255, 0.35);
   border-radius: 0.2cqw;
   padding: 0.05cqw 0.35cqw;
@@ -1025,12 +1060,30 @@
 
 .player-score {
   flex-shrink: 0;
-  border-radius: 0.25cqw;
-  padding: 0.12cqw 0.4cqw;
+  min-width: 1.6cqw;
+  height: 1.6cqw;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 0 0.35cqw;
   font-size: 0.75cqw;
   font-weight: 900;
   font-variant-numeric: tabular-nums;
   line-height: 1;
+  margin-left: 0.4cqw;
+}
+
+.player-score.score-dark {
+  background: #0f172a;
+  color: #fff500;
+  box-shadow: 0 0 0 1px rgba(255, 245, 0, 0.5);
+}
+
+.player-score.score-light {
+  background: #fff500;
+  color: #0f172a;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3);
 }
 
 /* ── Gagnant : halo SANS changer la couleur de fond ── */
@@ -1039,8 +1092,8 @@
     0 0 1.4cqw rgba(255, 245, 0, 0.85),
     0 0 2.6cqw rgba(255, 245, 0, 0.40),
     inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
-  outline: 2px solid #fff500;
-  outline-offset: 2px;
+  outline: 1.5px solid #fff500;
+  outline-offset: 1px;
 }
 
 .match-box.winner-blue {
@@ -1048,15 +1101,8 @@
     0 0 1.4cqw rgba(99, 102, 241, 0.85),
     0 0 2.6cqw rgba(43, 17, 224, 0.45),
     inset 0 1px 0 rgba(255, 255, 255, 0.30) !important;
-  outline: 2px solid #6366f1;
-  outline-offset: 2px;
-}
-
-/* ── Statut OPEN — pulse orange ── */
-.match-box.status-open {
-  outline: 2px solid #fb923c;
-  outline-offset: 2px;
-  animation: livePulse 1.8s ease-in-out infinite;
+  outline: 1.5px solid #6366f1;
+  outline-offset: 1px;
 }
 
 @keyframes livePulse {
@@ -1074,6 +1120,12 @@
 }
 
 /* ── Statut CLOSED — vert ── */
+.match-box.status-open {
+  outline: 2px solid #fb923c;
+  outline-offset: 2px;
+  animation: livePulse 1.8s ease-in-out infinite;
+}
+
 .match-box.status-closed {
   outline: 2px solid #10b981;
   outline-offset: 2px;
@@ -1160,4 +1212,11 @@
     animation: none !important;
     transition: none !important;
   }
+}
+
+
+.player-tbd .player-name-text {
+  opacity: 0.45;
+  font-style: italic;
+  letter-spacing: 0.1cqw;
 }

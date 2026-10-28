@@ -34,8 +34,8 @@ export async function GET(
                 include: {
                     criteria: true,
                     result: true,
-                    // 👇 ADMIN → tous les votes, JUDGE → seulement les siens
-                    votes: isAdmin ? true : { where: { judgeId: user.id } },
+                    // 👇 On récupère TOUS les votes pour que le frontend sache qui a voté
+                    votes: true,
                 },
                 orderBy: { number: 'asc' },
             },
@@ -48,6 +48,21 @@ export async function GET(
     }
 
     const { assignments, ...matchData } = match
+
+    // ────────── FILTRAGE DE CONFIDENTIALITÉ ──────────
+    // Si l'utilisateur n'est pas admin, on masque la valeur des votes des autres juges
+    // pour respecter la nouvelle règle de confidentialité, tout en gardant 
+    // la trace du vote (pour déclencher le round 3 et afficher le ✅).
+    if (!isAdmin) {
+        matchData.rounds = matchData.rounds.map((round) => ({
+            ...round,
+            votes: (round.votes || []).map((vote) =>
+                vote.judgeId === user.id
+                    ? vote
+                    : { ...vote, value: 0, criterion: 'HIDDEN' } // On masque la valeur
+            ),
+        }))
+    }
 
     return NextResponse.json({
         ...matchData,
