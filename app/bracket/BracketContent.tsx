@@ -317,6 +317,16 @@ function BracketBoard({ matches, role }: { matches: Match[]; role: UserRole }) {
                     {/* Ajout du bloc de fond central */}
                     <div className="header-block" />
 
+                    {/* Lien retour bracket */}
+                    <div className="absolute left-[2%] bottom-[2%] z-20">
+                        <Link
+                            href={`/tournaments`}
+                            className="text-[11px] font-extrabold uppercase tracking-wide text-white/70 hover:text-white"
+                        >
+                            ← Tournois
+                        </Link>
+                    </div>
+
                     {/* <header className="festival-title">
                         <div>PHILOSO</div>
                         <div>FLOOR</div>
@@ -456,6 +466,8 @@ function MatchSlotPair({
     const isWinnerB = Boolean(match.winnerId && match.winnerId === match.candidateB?.id)
     const isFinished = Boolean(match.winnerId)
     const isFinal = stage === 'FINAL'
+    const isLoserA = isFinished && !isWinnerA
+    const isLoserB = isFinished && !isWinnerB
 
     const href =
         role === 'ADMIN'
@@ -475,11 +487,11 @@ function MatchSlotPair({
         <>
             <Link
                 href={href}
-                className={`match-box ${slotA.color} ${isWinnerA ? `winner-${slotA.color}` : ''} ${statusClass}`}
+                className={`match-box ${slotA.color} ${isWinnerA ? `winner-${slotA.color}` : ''} ${isLoserA ? `loser-${slotA.color}` : ''} ${statusClass}`}
                 style={{ ...boxStyle, left: `${slotA.x}%`, top: `${slotA.y}%` }}
                 title={`${match.name} — ${match.candidateA?.name ?? 'Candidat A'}`}
             >
-                <PlayerRow candidate={match.candidateA} score={scoreA} isWinner={isWinnerA} color={slotA.color} />
+                <PlayerRow candidate={match.candidateA} score={scoreA} isWinner={isWinnerA} isLoser={isLoserA} color={slotA.color} />
             </Link>
 
             <span className="versus-badge" style={{ left: `${vsX}%`, top: `${vsY}%` }}>
@@ -488,11 +500,11 @@ function MatchSlotPair({
 
             <Link
                 href={href}
-                className={`match-box ${slotB.color} ${isWinnerB ? `winner-${slotB.color}` : ''} ${statusClass}`}
+                className={`match-box ${slotB.color} ${isWinnerB ? `winner-${slotB.color}` : ''} ${isLoserB ? `loser-${slotB.color}` : ''} ${statusClass}`}
                 style={{ ...boxStyle, left: `${slotB.x}%`, top: `${slotB.y}%` }}
                 title={`${match.name} — ${match.candidateB?.name ?? 'Candidat B'}`}
             >
-                <PlayerRow candidate={match.candidateB} score={scoreB} isWinner={isWinnerB} color={slotB.color} />
+                <PlayerRow candidate={match.candidateB} score={scoreB} isWinner={isWinnerB} isLoser={isLoserB} color={slotB.color} />
             </Link>
         </>
     )
@@ -502,11 +514,13 @@ function PlayerRow({
     candidate,
     score,
     isWinner,
+    isLoser,          // ⬅️ AJOUT 1 : nouvelle prop
     color,
 }: {
     candidate: Candidate | null
     score: number | null
     isWinner: boolean
+    isLoser: boolean  // ⬅️ AJOUT 2 : nouveau type
     color: 'yellow' | 'blue'
 }) {
     const rawName = candidate?.name ?? null
@@ -517,7 +531,7 @@ function PlayerRow({
     const isYellow = color === 'yellow'
 
     return (
-        <div className={`player-row ${isTbd ? 'player-tbd' : ''}`}>
+        <div className={`player-row ${isTbd ? 'player-tbd' : ''} ${isLoser ? 'player-loser' : ''}`}>  {/* ⬅️ AJOUT 3 */}
             <span className="player-name-text" title={display}>
                 {display}
             </span>

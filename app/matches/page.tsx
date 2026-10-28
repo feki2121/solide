@@ -21,6 +21,14 @@ type Match = {
     tournament: { id: string; name: string }
 }
 
+type Me = {
+    id: string
+    name: string
+    email: string
+    role: string
+    judge: boolean
+}
+
 async function readJson<T>(res: Response): Promise<T> {
     const body = await res.json().catch(() => ({}))
     if (!res.ok) throw new Error(body.error || 'Une erreur est survenue.')
@@ -53,6 +61,7 @@ export default function MatchesPage() {
     const [loading, setLoading] = useState(true)
     const [showForm, setShowForm] = useState(false)
     const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+    const [isAdmin, setIsAdmin] = useState(false)
 
     const load = useCallback(async () => {
         setLoading(true)
@@ -70,6 +79,18 @@ export default function MatchesPage() {
             setLoading(false)
         }
     }, [])
+
+    useEffect(() => {
+        void load()
+        void (async () => {
+            try {
+                const me = await readJson<Me>(await fetch('/api/auth/me', { cache: 'no-store' }))
+                setIsAdmin(me.role === 'ADMIN')
+            } catch {
+                setIsAdmin(false)
+            }
+        })()
+    }, [load])
 
     useEffect(() => { void load() }, [load])
 
@@ -126,14 +147,16 @@ export default function MatchesPage() {
                             <h1 className="mt-1 text-[28px] font-black tracking-tight text-[#0f172a] sm:text-[32px]">Matchs</h1>
                             <p className="mt-1 text-sm font-medium text-[#64748b]">{matches.length} match(s)</p>
                         </div>
-                        <button
-                            onClick={() => setShowForm(true)}
-                            disabled={tournaments.length === 0}
-                            title={tournaments.length === 0 ? 'Créez d\'abord un tournoi' : undefined}
-                            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#FF6B4A] to-[#E63946] px-5 py-3 text-sm font-bold text-white shadow-md shadow-red-500/20 hover:opacity-95 disabled:opacity-50 transition-all active:scale-[0.99]"
-                        >
-                            <Plus className="size-4" /> Nouveau match
-                        </button>
+                        {isAdmin && (
+                            <button
+                                onClick={() => setShowForm(true)}
+                                disabled={tournaments.length === 0}
+                                title={tournaments.length === 0 ? 'Créez d\'abord un tournoi' : undefined}
+                                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#FF6B4A] to-[#E63946] px-5 py-3 text-sm font-bold text-white shadow-md shadow-red-500/20 hover:opacity-95 disabled:opacity-50 transition-all active:scale-[0.99]"
+                            >
+                                <Plus className="size-4" /> Nouveau match
+                            </button>
+                        )}
                     </div>
 
                     {message && (
@@ -174,7 +197,7 @@ export default function MatchesPage() {
                                         <th className="px-5 py-3.5">Affrontement</th>
                                         <th className="px-5 py-3.5">Rounds</th>
                                         <th className="px-5 py-3.5">Statut</th>
-                                        <th className="px-5 py-3.5 text-right">Actions</th>
+                                        {/* <th className="px-5 py-3.5 text-right">Actions</th> */}
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -235,7 +258,7 @@ export default function MatchesPage() {
                                                         </span>
                                                     )}
                                                 </td>
-                                                <td className="px-5 py-4 text-right">
+                                                {/* <td className="px-5 py-4 text-right">
                                                     <div className="inline-flex items-center gap-2">
                                                         <Link
                                                             href={`/matches/${m.id}`}
@@ -272,7 +295,7 @@ export default function MatchesPage() {
                                                             <Trash2 className="size-3.5" /> Suppr.
                                                         </button>
                                                     </div>
-                                                </td>
+                                                </td> */}
                                             </tr>
                                         )
                                     })}
@@ -315,7 +338,7 @@ function MatchForm({
 }) {
     const [tournamentId, setTournamentId] = useState(tournaments[0]?.id ?? '')
     const [stage, setStage] = useState<'QUALIFICATION' | 'ROUND_OF_16' | 'QUARTER_FINAL' | 'SEMI_FINAL' | 'FINAL'>('ROUND_OF_16')
-    
+
     // Configuration des rounds indépendants pour chaque étape
     const [stageRounds, setStageRounds] = useState<Record<string, number>>({
         QUALIFICATION: 2,
@@ -477,9 +500,9 @@ function MatchForm({
                             <h2 className="text-lg font-black tracking-tight text-[#0f172a]">
                                 Nouveau tableau de tournoi
                             </h2>
-                            <p className="text-xs font-medium text-[#64748b]">
+                            {/* <p className="text-xs font-medium text-[#64748b]">
                                 Configurez les étapes, les rounds indépendants et les participants
-                            </p>
+                            </p> */}
                         </div>
                     </div>
                     <button
@@ -530,15 +553,12 @@ function MatchForm({
                                         onChange={(e) => setStage(e.target.value as typeof stage)}
                                         className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold outline-none focus:border-[#e63946] transition-colors"
                                     >
-                                        <option value="QUALIFICATION">Qualification (2 candidats)</option>
+                                        {/* <option value="QUALIFICATION">Qualification (2 candidats)</option> */}
                                         <option value="ROUND_OF_16">Huitième de finale (16 candidats · 8 matchs)</option>
                                         <option value="QUARTER_FINAL">Quart de finale (8 candidats · 4 matchs)</option>
                                         <option value="SEMI_FINAL">Demi-finale (4 candidats · 2 matchs)</option>
                                         <option value="FINAL">Finale seule (2 candidats · 1 match)</option>
                                     </select>
-                                    <span className="mt-1.5 block text-[11px] font-medium text-[#64748b]">
-                                        L'arbre générera automatiquement tous les tours suivants jusqu'à la Finale.
-                                    </span>
                                 </label>
                             </div>
 
@@ -578,11 +598,10 @@ function MatchForm({
                                         return (
                                             <div
                                                 key={stg}
-                                                className={`flex items-center justify-between rounded-xl border p-3 transition-colors ${
-                                                    isFinal
+                                                className={`flex items-center justify-between rounded-xl border p-3 transition-colors ${isFinal
                                                         ? 'border-amber-200 bg-amber-50/40'
                                                         : 'border-slate-100 bg-[#f8fafc]'
-                                                }`}
+                                                    }`}
                                             >
                                                 <div>
                                                     <span className="font-bold text-xs text-[#0f172a] block">
@@ -628,12 +647,12 @@ function MatchForm({
 
                             {/* Carte 3 : Informations Jurys */}
                             <div className="rounded-2xl border border-rose-100 bg-[#fff1f2]/40 p-4">
-                                <p className="text-xs font-bold text-[#0f172a]">
+                                {/* <p className="text-xs font-bold text-[#0f172a]">
                                     Assignation des jurys
                                 </p>
                                 <p className="mt-1 text-[11px] text-[#64748b]">
                                     {judges.length} jurys enregistrés seront assignés automatiquement à chaque match.
-                                </p>
+                                </p> */}
                             </div>
                         </div>
 
@@ -723,12 +742,12 @@ function MatchForm({
                 {/* ── PIED DE PAGE FIXE ── */}
                 <div className="flex shrink-0 items-center justify-between border-t border-slate-100 bg-white px-6 py-4">
                     <div className="hidden sm:flex flex-col gap-0.5">
-                        <span className="text-xs font-black text-[#0f172a]">
+                        {/* <span className="text-xs font-black text-[#0f172a]">
                             Total : {totalGeneratedMatches} match(s) générés ({pairsCount} match(s) à l'étape {stageLabels[stage]})
                         </span>
                         <span className="text-[11px] font-medium text-[#64748b]">
                             Rounds configurés : {activeStages.map((s) => `${STAGE_SHORT_LABELS[s] || stageLabels[s]}: ${stageRounds[s] ?? 3} rds`).join(' · ')}
-                        </span>
+                        </span> */}
                     </div>
 
                     <div className="flex items-center gap-3">

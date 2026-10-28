@@ -23,9 +23,10 @@ const navItems = [
     // { label: 'Dashboard', href: '/', icon: LayoutDashboard },
     // { label: 'Dashboard', href: '/bracket', icon: LayoutDashboard },
     { label: 'Tournoi', href: '/tournaments', icon: Trophy },
-    { label: 'Candidats', href: '/candidates', icon: Users },
-    { label: 'Jurys', href: '/judges', icon: ShieldCheck },
+    // { label: 'Candidats', href: '/candidates', icon: Users },
     { label: 'Matchs', href: '/matches', icon: ClipboardList },
+    { label: 'Jurys', href: '/judges', icon: ShieldCheck },
+
     // { label: 'Rounds', href: '/rounds', icon: List },
     // { label: 'Résultats', href: '/results', icon: ListChecks },
 ]
@@ -135,13 +136,13 @@ export function Sidebar() {
                             <X className="size-[17px]" />
                             Déconnexion
                         </button>
-                        <div className="mt-3 flex items-center gap-3 rounded-xl border border-[#fee2e2] bg-[#fff1f2]/30 p-2.5">
+                        {/* <div className="mt-3 flex items-center gap-3 rounded-xl border border-[#fee2e2] bg-[#fff1f2]/30 p-2.5">
                             <div className="grid size-8 place-items-center rounded-full bg-gradient-to-br from-[#FF6B4A] to-[#E63946] text-xs font-bold text-white shadow-xs">
                                 J
                             </div>
                             <div className="truncate text-xs font-bold text-[#0f172a]">Juge connecté</div>
                             <ChevronDown className="ml-auto size-4 text-[#94a3b8]" />
-                        </div>
+                        </div> */}
                     </div>
                 </div>
             </aside>

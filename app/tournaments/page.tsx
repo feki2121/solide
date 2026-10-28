@@ -11,6 +11,14 @@ type Tournament = {
     createdAt: string
 }
 
+type Me = {
+    id: string
+    name: string
+    email: string
+    role: string
+    judge: boolean
+}
+
 async function readJson<T>(res: Response): Promise<T> {
     const body = await res.json().catch(() => ({}))
     if (!res.ok) throw new Error(body.error || 'Une erreur est survenue.')
@@ -28,6 +36,7 @@ export default function TournamentsPage() {
     const [loading, setLoading] = useState(true)
     const [showForm, setShowForm] = useState(false)
     const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+    const [isAdmin, setIsAdmin] = useState(false)
 
     const load = useCallback(async () => {
         setLoading(true)
@@ -40,7 +49,17 @@ export default function TournamentsPage() {
         }
     }, [])
 
-    useEffect(() => { void load() }, [load])
+    useEffect(() => {
+        void load()
+        void (async () => {
+            try {
+                const me = await readJson<Me>(await fetch('/api/auth/me', { cache: 'no-store' }))
+                setIsAdmin(me.role === 'ADMIN')
+            } catch {
+                setIsAdmin(false)
+            }
+        })()
+    }, [load])
 
     return (
         <AdminLayout>
@@ -52,9 +71,11 @@ export default function TournamentsPage() {
                             <h1 className="mt-1 text-[28px] font-black tracking-tight text-[#0f172a] sm:text-[32px]">Tournois</h1>
                             <p className="mt-1 text-sm font-medium text-[#64748b]">{tournaments.length} tournoi(s)</p>
                         </div>
-                        <button onClick={() => setShowForm(true)} className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#FF6B4A] to-[#E63946] px-5 py-3 text-sm font-bold text-white shadow-md shadow-red-500/20 hover:opacity-95 transition-all active:scale-[0.99]">
-                            <Plus className="size-4" /> Nouveau tournoi
-                        </button>
+                        {isAdmin && (
+                            <button onClick={() => setShowForm(true)} className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#FF6B4A] to-[#E63946] px-5 py-3 text-sm font-bold text-white shadow-md shadow-red-500/20 hover:opacity-95 transition-all active:scale-[0.99]">
+                                <Plus className="size-4" /> Nouveau tournoi
+                            </button>
+                        )}
                     </div>
 
                     {message && (
@@ -63,7 +84,7 @@ export default function TournamentsPage() {
                         </div>
                     )}
 
-                    {showForm && (
+                    {isAdmin && showForm && (
                         <TournamentForm
                             onClose={() => setShowForm(false)}
                             onCreated={(t) => {
@@ -80,7 +101,9 @@ export default function TournamentsPage() {
                         <section className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-rose-200 bg-white p-12 text-center">
                             <Trophy className="size-9 text-[#ff6b4a]" />
                             <p className="text-sm font-bold text-[#0f172a]">Aucun tournoi</p>
-                            <p className="text-xs text-[#64748b]">Créez un tournoi pour commencer.</p>
+                            <p className="text-xs text-[#64748b]">
+                                {isAdmin ? 'Créez un tournoi pour commencer.' : 'Aucun tournoi disponible pour le moment.'}
+                            </p>
                         </section>
                     ) : (
                         <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -90,9 +113,9 @@ export default function TournamentsPage() {
                                         <div className="grid size-10 place-items-center rounded-xl bg-[#fff1f2] text-[#e63946] transition-transform duration-200 group-hover:scale-105">
                                             <Trophy className="size-5" />
                                         </div>
-                                        <span className="rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider border" style={{ backgroundColor: `${statusColors[t.status]}15`, color: statusColors[t.status], borderColor: `${statusColors[t.status]}30` }}>
+                                        {/* <span className="rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider border" style={{ backgroundColor: `${statusColors[t.status]}15`, color: statusColors[t.status], borderColor: `${statusColors[t.status]}30` }}>
                                             {t.status}
-                                        </span>
+                                        </span> */}
                                     </div>
                                     <h3 className="text-base font-bold text-[#0f172a]">{t.name}</h3>
                                     <p className="mt-1 text-xs font-medium text-[#94a3b8]">Créé le {new Date(t.createdAt).toLocaleDateString('fr-FR')}</p>
@@ -116,7 +139,6 @@ export default function TournamentsPage() {
 
 function TournamentForm({ onClose, onCreated }: { onClose: () => void; onCreated: (t: Tournament) => void }) {
     const [name, setName] = useState('')
-    const [status, setStatus] = useState<'DRAFT' | 'ACTIVE' | 'COMPLETED'>('DRAFT')
     const [submitting, setSubmitting] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
@@ -128,7 +150,7 @@ function TournamentForm({ onClose, onCreated }: { onClose: () => void; onCreated
             const res = await fetch('/api/tournaments', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: name.trim(), status }),
+                body: JSON.stringify({ name: name.trim(), status: 'ACTIVE' }),
             })
             const body = await res.json().catch(() => ({}))
             if (!res.ok) throw new Error(body.error || 'Création impossible.')
@@ -151,15 +173,6 @@ function TournamentForm({ onClose, onCreated }: { onClose: () => void; onCreated
                 <label className="mb-4 block">
                     <span className="text-xs font-bold text-[#0f172a]">Nom <span className="text-[#e63946]">*</span></span>
                     <input required value={name} onChange={(e) => setName(e.target.value)} placeholder="Test Battle 2025" className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:border-[#e63946] focus:ring-2 focus:ring-[#e63946]/20 transition-all" />
-                </label>
-
-                <label className="mb-4 block">
-                    <span className="text-xs font-bold text-[#0f172a]">Statut</span>
-                    <select value={status} onChange={(e) => setStatus(e.target.value as any)} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:border-[#e63946] focus:ring-2 focus:ring-[#e63946]/20 transition-all">
-                        <option value="DRAFT">Brouillon</option>
-                        <option value="ACTIVE">Actif</option>
-                        <option value="COMPLETED">Terminé</option>
-                    </select>
                 </label>
 
                 {error && <p className="mb-4 text-xs font-semibold text-[#dc2626]">{error}</p>}
