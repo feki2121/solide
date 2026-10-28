@@ -65,6 +65,21 @@ function isMatchComplete(match: MatchDetail, assignedJudgeIds: string[]): boolea
 }
 
 /**
+ * Un round est exposé (couleurs visibles) si :
+ * - Le match est 100% terminé (matchComplete)
+ * - OU si le round fait partie d'un bloc de rounds déjà clos 
+ *   (ex: si on est au round 3, les rounds 1 et 2 sont exposés).
+ */
+function isRoundExposed(roundNumber: number, totalRounds: number, matchComplete: boolean): boolean {
+    if (matchComplete) return true;
+    // Si on a un nombre impair de rounds (ex: 3), les rounds <= 2 sont définitifs
+    if (totalRounds % 2 !== 0) {
+        return roundNumber < totalRounds;
+    }
+    return false;
+}
+
+/**
  * Détermine le vainqueur d'un round par MAJORITÉ DE JURYS.
  * Un round remporté = 1 point (pas le nombre de votes individuels).
  * Retourne `null` en cas d'égalité parfaite.
@@ -249,14 +264,15 @@ export function ResultsScreen({
     let winsA = 0
     let winsB = 0
 
-    // On ne calcule les scores finaux que si le match est 100% terminé
-    if (matchComplete) {
-        for (const round of match.rounds) {
-            const winnerId = winnerOfRound(round, match)
-            if (!winnerId) continue
-            if (winnerId === match.candidateA?.id) winsA += 1
-            else if (winnerId === match.candidateB?.id) winsB += 1
-        }
+    // On calcule le score sur les rounds qui sont "exposés" (terminés et validés)
+    for (const round of match.rounds) {
+        const isExposed = isRoundExposed(round.number, match.rounds.length, matchComplete)
+        if (!isExposed) continue
+
+        const winnerId = winnerOfRound(round, match)
+        if (!winnerId) continue
+        if (winnerId === match.candidateA?.id) winsA += 1
+        else if (winnerId === match.candidateB?.id) winsB += 1
     }
 
     return (
@@ -398,6 +414,8 @@ export function ResultsScreen({
                                         : 0
                                 const totalJudges = assignedJudgeIds.length
 
+                                const isExposed = isRoundExposed(round.number, match.rounds.length, matchComplete)
+
                                 return (
                                     <div
                                         key={round.id}
@@ -431,8 +449,8 @@ export function ResultsScreen({
                                             )
                                             const hasVoted = judgeVotes.length > 0
 
-                                            // 1. Si le match n'est pas 100% terminé, on garde la confidentialité (✅ ou —)
-                                            if (!matchComplete) {
+                                            // 1. Si le round n'est PAS exposé, on garde la confidentialité (✅ ou —)
+                                            if (!isExposed) {
                                                 return (
                                                     <div key={j.id} className="flex justify-center items-center">
                                                         {hasVoted ? (
@@ -493,7 +511,7 @@ export function ResultsScreen({
                                     {nameA}
                                 </span>
                                 <span className="text-[21px] font-bold sm:text-[27px]">
-                                    {matchComplete ? winsA : '-'}
+                                    {winsA}
                                 </span>
                             </div>
 
@@ -506,7 +524,7 @@ export function ResultsScreen({
                                     {nameB}
                                 </span>
                                 <span className="text-[21px] font-bold sm:text-[27px]">
-                                    {matchComplete ? winsB : '-'}
+                                    {winsB}
                                 </span>
                             </div>
                         </div>
