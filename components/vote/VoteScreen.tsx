@@ -7,6 +7,7 @@ import {
     ArrowLeft,
     CheckCircle2,
     Loader2,
+    Trophy
 } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
 import { CriterionRow } from './CriterionRow'
@@ -211,6 +212,13 @@ export function VoteScreen({ matchId }: { matchId: string }) {
         }
     }
 
+    const avgScore = criteria.reduce((sum, c) => sum + scores[c.key], 0) / criteria.length
+    const leadA = 100 - avgScore
+    const leadB = avgScore
+    const winnerName = avgScore < 50 ? nameA : nameB
+    const winnerScore = avgScore < 50 ? leadA : leadB
+    const winnerColor = avgScore < 50 ? 'text-[#e63946]' : 'text-[#059669]'
+
     /* ───── Loading ───── */
     if (isLoading && !match) {
         return (
@@ -376,6 +384,20 @@ export function VoteScreen({ matchId }: { matchId: string }) {
                                 >
                                     {notice.message}
                                 </p>
+                            </div>
+                        )}
+
+
+                        {!isTie(scores) && (
+                            <div className="mt-2 flex items-center justify-center gap-2 text-sm">
+                                <Trophy className={`size-4 ${winnerColor}`} />
+                                <span className="font-bold text-[#64748b]">Vainqueur estimé :</span>
+                                <span className={`font-black ${winnerColor}`}>
+                                    {winnerName}
+                                </span>
+                                <span className={`rounded-md px-1.5 py-0.5 text-xs font-bold text-white ${avgScore < 50 ? 'bg-[#e63946]' : 'bg-[#059669]'}`}>
+                                    {Math.round(winnerScore)}%
+                                </span>
                             </div>
                         )}
 
