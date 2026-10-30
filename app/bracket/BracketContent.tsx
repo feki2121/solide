@@ -61,10 +61,10 @@ const COL3_Y = [50]
 const COL4_Y = [22, 78]
 const COL5_Y = [12, 32, 68, 88]
 
-const BOX_W = 12
-const BOX_H = 7
-const CENTER_BOX_W = 10
-const HALF = (BOX_H + 1.2) / 2 // 4.1 → espacement symétrique entre les 2 box d'un match
+const BOX_W = 13       // 12 → 15 (25% plus large)
+const BOX_H = 8      // 7 → 9.5 (35% plus haut pour 2 lignes de texte)
+const CENTER_BOX_W = 11 // 10 → 13
+const HALF = (BOX_H + 1.0) / 2
 
 const MATCH_BOXES: MatchBoxProps[] = [
     // COLONNE 1 (1/8 gauche) : x = 12%
@@ -514,13 +514,13 @@ function PlayerRow({
     candidate,
     score,
     isWinner,
-    isLoser,          // ⬅️ AJOUT 1 : nouvelle prop
+    isLoser,
     color,
 }: {
     candidate: Candidate | null
     score: number | null
     isWinner: boolean
-    isLoser: boolean  // ⬅️ AJOUT 2 : nouveau type
+    isLoser: boolean
     color: 'yellow' | 'blue'
 }) {
     const rawName = candidate?.name ?? null
@@ -530,10 +530,17 @@ function PlayerRow({
 
     const isYellow = color === 'yellow'
 
+    // 🔽 Découpe le nom en mots et les empile verticalement
+    const nameWords = display.split(' ').filter(Boolean)
+
     return (
-        <div className={`player-row ${isTbd ? 'player-tbd' : ''} ${isLoser ? 'player-loser' : ''}`}>  {/* ⬅️ AJOUT 3 */}
+        <div className={`player-row ${isTbd ? 'player-tbd' : ''} ${isLoser ? 'player-loser' : ''}`}>
             <span className="player-name-text" title={display}>
-                {display}
+                {nameWords.map((word, i) => (
+                    <span key={i} style={{ display: 'block' }}>
+                        {word}
+                    </span>
+                ))}
             </span>
 
             {!isTbd && score != null && (

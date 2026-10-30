@@ -88,7 +88,7 @@ async function createMatchWithRounds(
             data: {
                 matchId: match.id,
                 number: r,
-                status: params.roundStatus,
+                status: 'OPEN',
                 startedAt: params.roundStatus === 'OPEN' ? new Date() : null,
                 criteria: { create: DEFAULT_CRITERIA },
             },
@@ -222,7 +222,7 @@ export async function POST(request: Request) {
                             stage: nextStage,
                             roundsCount: nextStageRounds,
                             judgeIds: data.judgeIds,
-                            roundStatus: 'PENDING', // Rounds des stages suivants en attente
+                            roundStatus: 'OPEN', // Rounds des stages suivants en attente
                         })
                         nextMatchIds.push(newMatch.id)
                     }

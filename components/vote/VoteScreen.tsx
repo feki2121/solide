@@ -65,6 +65,12 @@ const EMPTY_SCORES: Record<Criterion, number> = {
     execution: 50,
 }
 
+function isTie(scores: Record<Criterion, number>): boolean {
+    const totalA = criteria.reduce((sum, c) => sum + scores[c.key], 0)
+    const totalB = criteria.reduce((sum, c) => sum + (100 - scores[c.key]), 0)
+    return totalA === totalB
+}
+
 const STAGE_LABELS: Record<string, string> = {
     QUALIFICATION: 'Qualification',
     ROUND_OF_16: 'Huitième de finale',
@@ -168,6 +174,15 @@ export function VoteScreen({ matchId }: { matchId: string }) {
 
     const handleSubmit = async () => {
         if (!match || !selectedRound || isRoundLocked) return
+
+        if (isTie(scores)) {
+            setNotice({
+                tone: 'error',
+                message: 'Vous ne pouvez pas voter une égalité : ajustez au moins un critère.',
+            })
+            return
+        }
+
         setIsSaving(true)
         setNotice(null)
         try {
@@ -281,7 +296,8 @@ export function VoteScreen({ matchId }: { matchId: string }) {
                                 <button
                                     key={round.id}
                                     onClick={() => handleRoundSelect(round)}
-                                    className={`flex flex-1 flex-col items-center gap-1 rounded-xl border px-2 py-3 transition ${selected
+                                    // disabled={isRoundLocked}
+                                    className={`flex flex-1 flex-col items-center gap-1 rounded-xl border px-2 py-3 transition disabled:cursor-not-allowed disabled:opacity-50 ${selected
                                         ? 'border-[#e63946] bg-[#fff1f2] shadow-2xs'
                                         : 'border-rose-100 bg-white hover:border-rose-200 hover:bg-[#fff1f2]/50'
                                         }`}
@@ -324,7 +340,7 @@ export function VoteScreen({ matchId }: { matchId: string }) {
                 ) : null}
 
                 {/* Zone de vote */}
-                {selectedRound?.status === 'OPEN' && (
+                {selectedRound?.status === 'OPEN' && submittedCriteria.size < criteria.length && (
                     <div className="flex flex-col gap-3">
                         {criteria.map((c) => (
                             <CriterionRow
@@ -335,9 +351,10 @@ export function VoteScreen({ matchId }: { matchId: string }) {
                                 nameA={nameA}
                                 nameB={nameB}
                                 disabled={isRoundLocked}
-                                onChange={(v) =>
+                                onChange={(v) => {
                                     setScores((cur) => ({ ...cur, [c.key]: v }))
-                                }
+                                    if (notice?.tone === 'error') setNotice(null)
+                                }}
                             />
                         ))}
 
@@ -364,7 +381,7 @@ export function VoteScreen({ matchId }: { matchId: string }) {
 
                         <button
                             onClick={() => void handleSubmit()}
-                            disabled={isSaving || isRoundLocked}
+                            disabled={isSaving || isRoundLocked || isTie(scores)}
                             className="mt-2 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#ff6b4a] to-[#e63946] px-6 py-4 text-sm font-extrabold text-white shadow-lg shadow-rose-500/20 transition hover:opacity-95 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:bg-none disabled:shadow-none"
                         >
                             {isSaving ? (
@@ -379,6 +396,37 @@ export function VoteScreen({ matchId }: { matchId: string }) {
                                 </>
                             )}
                         </button>
+                        {isTie(scores) && !isRoundLocked && (
+                            <div className="flex items-center gap-2.5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+                                <AlertCircle className="size-5 shrink-0 text-amber-600" />
+                                <p className="flex-1 text-sm font-bold text-amber-700">
+                                    Pas d'égalité autorisée.
+                                </p>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* ⬇️ NOUVEAU : écran affiché quand le juge a déjà voté ce round */}
+                {selectedRound?.status === 'OPEN' && submittedCriteria.size === criteria.length && (
+                    <div className="flex flex-col items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-8 text-center">
+                        <CheckCircle2 className="size-10 text-emerald-600" />
+                        <p className="text-base font-extrabold text-emerald-800">
+                            Votre vote est bien enregistré
+                        </p>
+                        {/* <p className="max-w-md text-sm font-medium text-emerald-700">
+                            Vous ne pouvez plus modifier ce round. Attendez l'ouverture du round suivant.
+                        </p> */}
+                        {/* <Link
+                            href={
+                                tournamentId
+                                    ? `/bracket?tournamentId=${encodeURIComponent(tournamentId)}`
+                                    : '/bracket'
+                            }
+                            className="mt-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-emerald-500/20 transition hover:bg-emerald-700"
+                        >
+                            Retour au tableau
+                        </Link> */}
                     </div>
                 )}
             </div>

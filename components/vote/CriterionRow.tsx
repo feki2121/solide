@@ -36,32 +36,42 @@ export function CriterionRow({
     return (
         <div className="rounded-2xl border border-rose-100 bg-white p-4 shadow-2xs transition-shadow hover:shadow-sm">
             <div className="flex flex-col gap-3">
-                {/* En-tête */}
-                <div className="flex items-start justify-between gap-3">
-                    <div className="flex min-w-0 flex-1 items-center gap-3">
-                        <div className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-rose-100 bg-[#fff1f2] text-base">
+                {/* En-tête : Candidat A | Titre | Candidat B */}
+                <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+
+                    {/* GAUCHE : Candidat A */}
+                    <div className="flex flex-col items-start min-w-0">
+                        <span className="truncate text-[10px] font-bold text-[#94a3b8] w-full">
+                            {nameA}
+                        </span>
+                        <span className={`text-xl font-black tabular-nums leading-none ${value < 50 ? 'text-[#e63946]' : 'text-[#0f172a]'}`}>
+                            {Math.round(100 - value)}%
+                        </span>
+                    </div>
+
+                    {/* CENTRE : Titre du critère */}
+                    <div className="flex flex-col items-center justify-center px-2">
+                        <div className="flex size-8 items-center justify-center rounded-lg border border-rose-100 bg-[#fff1f2] text-base">
                             {icon}
                         </div>
-                        <span className="truncate text-sm font-extrabold text-[#0f172a]">
+                        <span className="mt-1 text-center text-xs font-extrabold text-[#0f172a] whitespace-nowrap">
                             {label}
                         </span>
                     </div>
 
-                    <div className="flex flex-col items-end">
-                        <span
-                            className="text-xl font-black leading-none tabular-nums"
-                            style={{ color: accent }}
-                        >
-                            {Math.round(value)}%
+                    {/* DROITE : Candidat B */}
+                    <div className="flex flex-col items-end min-w-0">
+                        <span className="truncate text-[10px] font-bold text-[#94a3b8] w-full text-right">
+                            {nameB}
                         </span>
-                        <span className="text-[10px] font-bold" style={{ color: accent }}>
-                            {value === 50 ? 'Neutre' : `${whoPicks} +${intensity}`}
+                        <span className={`text-xl font-black tabular-nums leading-none ${value > 50 ? 'text-[#059669]' : 'text-[#0f172a]'}`}>
+                            {value}%
                         </span>
                     </div>
                 </div>
 
                 {/* Slider */}
-                <div className="relative">
+                <div className="relative mt-1">
                     <input
                         type="range"
                         min={0}
@@ -76,23 +86,13 @@ export function CriterionRow({
                     />
                 </div>
 
-                {/* Repères sous le slider */}
-                <div className="flex items-center justify-between">
-                    <span
-                        className={`max-w-[40%] truncate text-[10px] transition-colors ${value < 50
-                            ? 'font-extrabold text-[#e63946]'
-                            : 'font-semibold text-[#94a3b8]'
-                            }`}
-                    >
+                {/* Repères sous le slider (Noms) */}
+                <div className="flex items-center justify-between -mt-1">
+                    <span className={`max-w-[40%] truncate text-[10px] transition-colors ${value < 50 ? 'font-extrabold text-[#e63946]' : 'font-semibold text-[#94a3b8]'}`}>
                         {nameA}
                     </span>
                     <span className="text-[10px] font-semibold text-[#94a3b8]">50</span>
-                    <span
-                        className={`max-w-[40%] truncate text-right text-[10px] transition-colors ${value > 50
-                            ? 'font-extrabold text-[#059669]'
-                            : 'font-semibold text-[#94a3b8]'
-                            }`}
-                    >
+                    <span className={`max-w-[40%] truncate text-right text-[10px] transition-colors ${value > 50 ? 'font-extrabold text-[#059669]' : 'font-semibold text-[#94a3b8]'}`}>
                         {nameB}
                     </span>
                 </div>
