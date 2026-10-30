@@ -215,9 +215,13 @@ export function VoteScreen({ matchId }: { matchId: string }) {
     const avgScore = criteria.reduce((sum, c) => sum + scores[c.key], 0) / criteria.length
     const leadA = 100 - avgScore
     const leadB = avgScore
+
+    const COLOR_A = '#1939b1'
+    const COLOR_B = '#f3a000'
+
     const winnerName = avgScore < 50 ? nameA : nameB
     const winnerScore = avgScore < 50 ? leadA : leadB
-    const winnerColor = avgScore < 50 ? 'text-[#e63946]' : 'text-[#059669]'
+    const winnerColor = avgScore < 50 ? 'text-[#1939b1]' : 'text-[#f3a000]'
 
     /* ───── Loading ───── */
     if (isLoading && !match) {
@@ -391,13 +395,13 @@ export function VoteScreen({ matchId }: { matchId: string }) {
                         {!isTie(scores) && (
                             <div className="mt-2 flex items-center justify-center gap-2 text-sm">
                                 <Trophy className={`size-4 ${winnerColor}`} />
-                                <span className="font-bold text-[#64748b]">Vainqueur estimé :</span>
+                                <span className="font-bold text-[#64748b]">Vainqueur :</span>
                                 <span className={`font-black ${winnerColor}`}>
                                     {winnerName}
                                 </span>
-                                <span className={`rounded-md px-1.5 py-0.5 text-xs font-bold text-white ${avgScore < 50 ? 'bg-[#e63946]' : 'bg-[#059669]'}`}>
+                                {/* <span className={`rounded-md px-1.5 py-0.5 text-xs font-bold text-white ${avgScore < 50 ? 'bg-[#e63946]' : 'bg-[#059669]'}`}>
                                     {Math.round(winnerScore)}%
-                                </span>
+                                </span> */}
                             </div>
                         )}
 

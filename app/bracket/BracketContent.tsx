@@ -424,6 +424,13 @@ function MatchSlotPair({
     match: Match | null
     role: UserRole
 }) {
+
+    if (!match) {
+        return null
+    }
+    const isMatchReady = Boolean(match.candidateA && match.candidateB)
+
+
     const isCenter = stage === 'SEMI_FINAL' || stage === 'FINAL'
     const width = isCenter ? CENTER_BOX_W : BOX_W
 
@@ -485,27 +492,50 @@ function MatchSlotPair({
 
     return (
         <>
-            <Link
-                href={href}
-                className={`match-box ${slotA.color} ${isWinnerA ? `winner-${slotA.color}` : ''} ${isLoserA ? `loser-${slotA.color}` : ''} ${statusClass}`}
-                style={{ ...boxStyle, left: `${slotA.x}%`, top: `${slotA.y}%` }}
-                title={`${match.name} — ${match.candidateA?.name ?? 'Candidat A'}`}
-            >
-                <PlayerRow candidate={match.candidateA} score={scoreA} isWinner={isWinnerA} isLoser={isLoserA} color={slotA.color} />
-            </Link>
+            {/* Case A (Jaune) */}
+            {isMatchReady ? (
+                <Link
+                    href={href}
+                    className={`match-box ${slotA.color} ${isWinnerA ? `winner-${slotA.color}` : ''} ${isLoserA ? `loser-${slotA.color}` : ''} ${statusClass}`}
+                    style={{ ...boxStyle, left: `${slotA.x}%`, top: `${slotA.y}%` }}
+                    title={`${match.name} — ${match.candidateA?.name ?? 'Candidat A'}`}
+                >
+                    <PlayerRow candidate={match.candidateA} score={scoreA} isWinner={isWinnerA} isLoser={isLoserA} color={slotA.color} />
+                </Link>
+            ) : (
+                <div
+                    className={`match-box ${slotA.color} cursor-not-allowed opacity-80`}
+                    style={{ ...boxStyle, left: `${slotA.x}%`, top: `${slotA.y}%` }}
+                    title="En attente de l'adversaire"
+                >
+                    <PlayerRow candidate={match.candidateA} score={scoreA} isWinner={isWinnerA} isLoser={isLoserA} color={slotA.color} />
+                </div>
+            )}
 
+            {/* Badge VS */}
             <span className="versus-badge" style={{ left: `${vsX}%`, top: `${vsY}%` }}>
                 VS
             </span>
 
-            <Link
-                href={href}
-                className={`match-box ${slotB.color} ${isWinnerB ? `winner-${slotB.color}` : ''} ${isLoserB ? `loser-${slotB.color}` : ''} ${statusClass}`}
-                style={{ ...boxStyle, left: `${slotB.x}%`, top: `${slotB.y}%` }}
-                title={`${match.name} — ${match.candidateB?.name ?? 'Candidat B'}`}
-            >
-                <PlayerRow candidate={match.candidateB} score={scoreB} isWinner={isWinnerB} isLoser={isLoserB} color={slotB.color} />
-            </Link>
+            {/* Case B (Bleue) */}
+            {isMatchReady ? (
+                <Link
+                    href={href}
+                    className={`match-box ${slotB.color} ${isWinnerB ? `winner-${slotB.color}` : ''} ${isLoserB ? `loser-${slotB.color}` : ''} ${statusClass}`}
+                    style={{ ...boxStyle, left: `${slotB.x}%`, top: `${slotB.y}%` }}
+                    title={`${match.name} — ${match.candidateB?.name ?? 'Candidat B'}`}
+                >
+                    <PlayerRow candidate={match.candidateB} score={scoreB} isWinner={isWinnerB} isLoser={isLoserB} color={slotB.color} />
+                </Link>
+            ) : (
+                <div
+                    className={`match-box ${slotB.color} cursor-not-allowed opacity-80`}
+                    style={{ ...boxStyle, left: `${slotB.x}%`, top: `${slotB.y}%` }}
+                    title="En attente de l'adversaire"
+                >
+                    <PlayerRow candidate={match.candidateB} score={scoreB} isWinner={isWinnerB} isLoser={isLoserB} color={slotB.color} />
+                </div>
+            )}
         </>
     )
 }
@@ -543,11 +573,11 @@ function PlayerRow({
                 ))}
             </span>
 
-            {!isTbd && score != null && (
+            {/* {!isTbd && score != null && (
                 <span className={`player-score ${isYellow ? 'score-dark' : 'score-light'}`}>
                     {score.toFixed(0)}
                 </span>
-            )}
+            )} */}
         </div>
     )
 }
