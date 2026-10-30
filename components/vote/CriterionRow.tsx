@@ -19,52 +19,51 @@ export function CriterionRow({
     disabled: boolean
     onChange: (v: number) => void
 }) {
-    /* Couleur dynamique selon le score :
-       < 50 → joueur A (corail/rouge)
-       = 50 → neutre (gris)
-       > 50 → joueur B (émeraude) */
-    const accent = value < 50 ? '#e63946' : value > 50 ? '#059669' : '#94a3b8'
-    const whoPicks = value === 50 ? 'Neutre' : value < 50 ? nameA : nameB
-    const intensity = Math.round(Math.abs(50 - value) * 2)
+    // Couleurs calquées sur l'écran de résultat
+    const colorA = '#1939b1' // Bleu
+    const colorB = '#f3a000' // Jaune/Or
+    const colorNeutral = '#94a3b8' // Gris
 
-    /* Track : dégradé horizontal qui montre visuellement
-       la part allouée à chaque candidat */
+    // La valeur < 50 donne l'avantage à A (Bleu). > 50 donne l'avantage à B (Jaune).
+    const accent = value < 50 ? colorA : value > 50 ? colorB : colorNeutral
+
+    /* Track : Dégradé Bleu -> Jaune */
     const trackBg = useMemo(() => {
-        return `linear-gradient(to right, #e63946 0%, #e63946 ${value}%, #10b981 ${value}%, #10b981 100%)`
+        return `linear-gradient(to right, ${colorA} 0%, ${colorA} ${value}%, ${colorB} ${value}%, ${colorB} 100%)`
     }, [value])
 
     return (
-        <div className="rounded-2xl border border-rose-100 bg-white p-4 shadow-2xs transition-shadow hover:shadow-sm">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs transition-shadow hover:shadow-sm">
             <div className="flex flex-col gap-3">
                 {/* En-tête : Candidat A | Titre | Candidat B */}
                 <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
 
-                    {/* GAUCHE : Candidat A */}
+                    {/* GAUCHE : Candidat A (Bleu) */}
                     <div className="flex flex-col items-start min-w-0">
-                        <span className="truncate text-[10px] font-bold text-[#94a3b8] w-full">
+                        <span className="truncate text-[10px] font-bold text-slate-500 w-full">
                             {nameA}
                         </span>
-                        <span className={`text-xl font-black tabular-nums leading-none ${value < 50 ? 'text-[#e63946]' : 'text-[#0f172a]'}`}>
+                        <span className={`text-xl font-black tabular-nums leading-none ${value < 50 ? 'text-[#1939b1]' : 'text-slate-800'}`}>
                             {Math.round(100 - value)}%
                         </span>
                     </div>
 
                     {/* CENTRE : Titre du critère */}
                     <div className="flex flex-col items-center justify-center px-2">
-                        <div className="flex size-8 items-center justify-center rounded-lg border border-rose-100 bg-[#fff1f2] text-base">
+                        <div className="flex size-8 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-base">
                             {icon}
                         </div>
-                        <span className="mt-1 text-center text-xs font-extrabold text-[#0f172a] whitespace-nowrap">
+                        <span className="mt-1 text-center text-xs font-extrabold text-slate-800 whitespace-nowrap">
                             {label}
                         </span>
                     </div>
 
-                    {/* DROITE : Candidat B */}
+                    {/* DROITE : Candidat B (Jaune) */}
                     <div className="flex flex-col items-end min-w-0">
-                        <span className="truncate text-[10px] font-bold text-[#94a3b8] w-full text-right">
+                        <span className="truncate text-[10px] font-bold text-slate-500 w-full text-right">
                             {nameB}
                         </span>
-                        <span className={`text-xl font-black tabular-nums leading-none ${value > 50 ? 'text-[#059669]' : 'text-[#0f172a]'}`}>
+                        <span className={`text-xl font-black tabular-nums leading-none ${value > 50 ? 'text-[#f3a000]' : 'text-slate-800'}`}>
                             {value}%
                         </span>
                     </div>
@@ -88,11 +87,11 @@ export function CriterionRow({
 
                 {/* Repères sous le slider (Noms) */}
                 <div className="flex items-center justify-between -mt-1">
-                    <span className={`max-w-[40%] truncate text-[10px] transition-colors ${value < 50 ? 'font-extrabold text-[#e63946]' : 'font-semibold text-[#94a3b8]'}`}>
+                    <span className={`max-w-[40%] truncate text-[10px] transition-colors ${value < 50 ? 'font-extrabold text-[#1939b1]' : 'font-semibold text-slate-400'}`}>
                         {nameA}
                     </span>
-                    <span className="text-[10px] font-semibold text-[#94a3b8]">50</span>
-                    <span className={`max-w-[40%] truncate text-right text-[10px] transition-colors ${value > 50 ? 'font-extrabold text-[#059669]' : 'font-semibold text-[#94a3b8]'}`}>
+                    <span className="text-[10px] font-semibold text-slate-400">50</span>
+                    <span className={`max-w-[40%] truncate text-right text-[10px] transition-colors ${value > 50 ? 'font-extrabold text-[#f3a000]' : 'font-semibold text-slate-400'}`}>
                         {nameB}
                     </span>
                 </div>
