@@ -52,19 +52,23 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Match non autorisé' }, { status: 403 })
         }
 
+        // 🔽 AJOUT : interdire de re-voter si les 5 critères sont déjà soumis
+        const existingVotes = await prisma.vote.findMany({
+            where: { roundId: round.id, judgeId: user.id },
+            select: { criterion: true },
+        })
+        if (existingVotes.length >= 5) {
+            return NextResponse.json(
+                { error: 'Vote déjà enregistré pour ce round.' },
+                { status: 409 }
+            )
+        }
+
         // Crée ou met à jour les votes (upsert pour tolérer les modifications)
         const created = await prisma.$transaction(
             data.votes.map((vote) =>
-                prisma.vote.upsert({
-                    where: {
-                        judgeId_roundId_criterion: {
-                            judgeId: user.id,
-                            roundId: round.id,
-                            criterion: vote.criterion,
-                        },
-                    },
-                    update: { value: vote.value },
-                    create: {
+                prisma.vote.create({
+                    data: {
                         judgeId: user.id,
                         roundId: round.id,
                         criterion: vote.criterion,

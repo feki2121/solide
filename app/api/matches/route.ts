@@ -46,7 +46,13 @@ export async function GET(request: Request) {
           judge: { include: { user: { select: { id: true, name: true, email: true } } } },
         },
       },
-      rounds: { include: { result: true }, orderBy: { number: 'asc' } },
+      rounds: {
+        include: {
+          result: true,
+          votes: { where: { judgeId: user.id } },
+        },
+        orderBy: { number: 'asc' },
+      },
       result: true,
     },
     orderBy: { createdAt: 'asc' },

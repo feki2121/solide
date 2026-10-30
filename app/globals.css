@@ -790,17 +790,6 @@
   overflow: hidden;
 }
 
-.player-name-text {
-  min-width: 0;
-  flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  text-align: center;
-  font-size: 0.95cqw;
-  font-weight: 900;
-}
-
 .player-score {
   flex-shrink: 0;
   font-size: 0.85cqw;
@@ -1050,12 +1039,17 @@
   min-width: 0;
   flex: 1;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
   text-align: center;
-  font-size: 0.95cqw;
+  /* ⬇️ plus de taille figée : la classe Tailwind du composant prend le relais */
+  /* font-size: 1.65cqw; */
   font-weight: 900;
   letter-spacing: -0.02cqw;
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 .player-score {
@@ -1110,33 +1104,35 @@
    ══════════════════════════════════════════════ */
 .match-box.loser-yellow,
 .match-box.loser-blue {
-    /* pas de opacity globale → on garde le texte net */
-    opacity: 1;
-    /* on grise juste la couleur de fond, sans assombrir le texte */
-    filter: grayscale(0.6) saturate(0.5);
-    box-shadow: none !important;
-    transition: filter 0.35s ease, box-shadow 0.35s ease;
+  /* pas de opacity globale → on garde le texte net */
+  opacity: 1;
+  /* on grise juste la couleur de fond, sans assombrir le texte */
+  filter: grayscale(0.6) saturate(0.5);
+  box-shadow: none !important;
+  transition: filter 0.35s ease, box-shadow 0.35s ease;
 }
 
 /* Texte du perdant : gris clair mais lisible, PAS de brightness */
 .player-loser .player-name-text {
-    color: #6b7280;          /* gris moyen lisible sur fond clair */
-    font-weight: 600;         /* garde le gras pour rester lisible */
-    text-decoration: line-through;
-    text-decoration-color: rgba(107, 114, 128, 0.6);
-    opacity: 0.85;
+  color: #6b7280;
+  /* gris moyen lisible sur fond clair */
+  font-weight: 600;
+  /* garde le gras pour rester lisible */
+  text-decoration: line-through;
+  text-decoration-color: rgba(107, 114, 128, 0.6);
+  opacity: 0.85;
 }
 
 /* Score du perdant : atténué légèrement */
 .player-loser .player-score {
-    opacity: 0.6;
+  opacity: 0.6;
 }
 
 /* Petite bordure pointillée pour signaler "éliminé" sans assombrir */
 .match-box.loser-yellow,
 .match-box.loser-blue {
-    border-style: dashed;
-    border-color: rgba(107, 114, 128, 0.5);
+  border-style: dashed;
+  border-color: rgba(107, 114, 128, 0.5);
 }
 
 @keyframes livePulse {
@@ -1218,7 +1214,8 @@
   }
 
   .player-name-text {
-    font-size: 1.8cqw;
+    font-size: 2cqw;
+    line-height: 1.05;
   }
 
   .player-score {
