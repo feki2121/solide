@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: 'Judgement — Dance Battle',
     short_name: 'Judgement',
     description: 'Application officielle de notation et jugement en temps réel pour compétitions de danse.',
-    start_url: '/',
+    start_url: '/tournaments',
     id: '/?source=pwa',
     scope: '/',
     display: 'standalone',
