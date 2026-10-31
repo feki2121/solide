@@ -1050,6 +1050,7 @@
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+  font-size: x-large;
 }
 
 .player-score {
@@ -1069,7 +1070,7 @@
 }
 
 .player-score.score-dark {
-  background: #0f172a;
+  background: #0f172a; 
   color: #fff500;
   box-shadow: 0 0 0 1px rgba(255, 245, 0, 0.5);
 }
