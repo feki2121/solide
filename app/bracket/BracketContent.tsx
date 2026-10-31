@@ -560,17 +560,11 @@ function PlayerRow({
 
     const isYellow = color === 'yellow'
 
-    // 🔽 Découpe le nom en mots et les empile verticalement
-    const nameWords = display.split(' ').filter(Boolean)
-
     return (
         <div className={`player-row ${isTbd ? 'player-tbd' : ''} ${isLoser ? 'player-loser' : ''}`}>
+            {/* On affiche le nom directement comme un seul bloc de texte */}
             <span className="player-name-text" title={display}>
-                {nameWords.map((word, i) => (
-                    <span key={i} style={{ display: 'block' }}>
-                        {word}
-                    </span>
-                ))}
+                {display}
             </span>
 
             {/* {!isTbd && score != null && (
